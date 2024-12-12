@@ -1,5 +1,5 @@
 from world.base_world import BaseWorld
-import gym
+import gymnasium as gym
 
 
 class MountainCarWorld(BaseWorld):
