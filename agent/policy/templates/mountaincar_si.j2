@@ -1,0 +1,10 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the environment of mountain car.
+The mountain car environment is a 2D world where the agent (car) can move left, stay still, or move right (corresponding to action 0, 1, 2). The goal is to reach the flag at the far right side of the hill. 
+Next, you will see a table that shows the reward values for each state-action pair. Use this information to improve the q-table.
+Note that the state is discretized into 10 bins for position (from -5 to 4) and 20 bins for velocity (from -10 to 9).
+{{ replay_buffer_string }}
+
+This reward table is generated based on the previous q-table:
+{{ q_table_string }}
+
+Based on the reward values, please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value, uncertainty).
