@@ -88,7 +88,8 @@ class QTable(Policy):
 
 
     def update_q_value(self, state, action, new_q_value):
-        self.mapping[state][action] = new_q_value
+        if state in self.mapping and action in self.mapping[state]:
+            self.mapping[state][action] = new_q_value
 
     
     def update_policy(self, new_q_table):

@@ -1,5 +1,5 @@
-from world.mountain_car import MountainCarWorld
-from agent.mountain_car import MountainCarAgent
+from world.pendulum import PendulumWorld
+from agent.pendulum import PendulumAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -9,8 +9,10 @@ def run_training_loop(
     num_episodes,
     gym_env_name,
     render_mode,
-    num_position_bins,
-    num_velocity_bins,
+    num_costheta_bins,
+    num_sintheta_bins,
+    num_angular_velocity_bins,
+    num_action_bins,
     logdir,
     actions,
     states,
@@ -22,7 +24,7 @@ def run_training_loop(
     llm_model_name,
     num_evaluation_episodes,
 ):
-    assert task == "mountaincar"
+    assert task == "pendulum"
 
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
     llm_si_template = jinja2_env.get_template(llm_si_template_name)
@@ -30,14 +32,16 @@ def run_training_loop(
         llm_output_conversion_template_name
     )
 
-    world = MountainCarWorld(
+    world = PendulumWorld(
         gym_env_name, 
         render_mode, 
-        num_position_bins, 
-        num_velocity_bins,
+        num_costheta_bins,
+        num_sintheta_bins,
+        num_angular_velocity_bins,
+        num_action_bins,
         max_traj_length,
     )
-    agent = MountainCarAgent(
+    agent = PendulumAgent(
         logdir,
         actions,
         states,

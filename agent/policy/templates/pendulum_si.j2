@@ -1,0 +1,22 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the environment of pendulum.
+The system consists of a pendulum attached at one end to a fixed point, and the other end being free. The pendulum starts in a random position and the goal is to apply torque on the free end to swing it into an upright position, with its center of gravity right above the fixed point, and keep it there.
+
+The state of the system in represented in 3 variables: 
+- cos(theta) [ranging from -1.0 to 1.0], positive values indicate the pendulum is above of the fixed point, negative values indicate the pendulum is below the fixed point.
+- sin(theta) [ranging from -1.0 to 1.0], positive values indicate the pendulum is to the left of the fixed point, negative values indicate the pendulum is to the right of the fixed point.
+- angular velocity [ranging from -8.0 to 8.0], positive values indicate the pendulum is moving to the anti-clockwise, negative values indicate the pendulum is moving clockwise.
+Note that cos(theta), sin(theta) and angular velocity are each discretized into 5 bins for position (from -2 to 2).
+For cos(theta) and sin(theta), the bins are: -2: [-1.0, -0.6], -1: (-0.6, -0.2], 0: (-0.2, 0.2], 1: (0.2, 0.6], 2: (0.6, 1.0].
+For angular velocity, the bins are: -2: [-8.0, -4.8], -1: (-4.8, -1.6], 0: (-1.6, 1.6], 1: (1.6, 4.8], 2: (4.8, 8.0].
+
+The available action is to apply torque to the pendulum, with values ranging from -2.0 to 2.0. It is also discritized into 5 bins (from -2 to 2).
+For the action, the bins are: -2: -1.6, -1: -0.8, 0: 0.0, 1: 0.8, 2: 1.6.
+
+Next, you will see a table that shows the reward values for each state-action pair, as the replay buffer.
+{{ replay_buffer_string }}
+
+Please use the above information to improve the q-table. Following is the current q-table:
+{{ q_table_string }}
+
+Please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value).
+Please generate all the possible state-action pairs.

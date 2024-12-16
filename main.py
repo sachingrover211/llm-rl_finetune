@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from runner import mountain_car_runner
+from runner import mountain_car_runner, pendulum_runner
 
 
 def main():
@@ -16,7 +16,12 @@ def main():
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
-    mountain_car_runner.run_training_loop(**config)
+    if config["task"] == "mountaincar":
+        mountain_car_runner.run_training_loop(**config)
+    elif config["task"] == "pendulum":
+        pendulum_runner.run_training_loop(**config)
+    else:
+        raise ValueError(f"Task {config['task']} not recognized.")
 
 
 if __name__ == "__main__":
