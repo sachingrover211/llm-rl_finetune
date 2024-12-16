@@ -70,7 +70,7 @@ class LLMBrain:
 
         return new_q_values_list
 
-    def llm_update_q_table(self, q_table, replay_buffer):
+    def llm_update_q_table(self, q_table, replay_buffer, parse_q_table):
         self.reset_llm_conversation()
 
         system_prompt = self.llm_si_template.render(
@@ -89,6 +89,6 @@ class LLMBrain:
 
         # print(f"New Q-table: {new_q_table}")
 
-        new_q_table_list = self.parse_q_table(new_q_table)
+        new_q_table_list = parse_q_table(new_q_table)
 
-        return new_q_table_list, new_q_table_with_reasoning
+        return new_q_table_list, [new_q_table_with_reasoning, new_q_table]

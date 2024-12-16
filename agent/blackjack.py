@@ -52,7 +52,7 @@ class BlackjackAgent:
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
-        new_q_values_list, reasoning = self.llm_brain.llm_update_q_table(
+        new_q_values_list, (reasoning, reasoning_processed) = self.llm_brain.llm_update_q_table(
             self.q_table, self.replay_buffer
         )
         self.q_table.update_policy(new_q_values_list)
@@ -64,6 +64,10 @@ class BlackjackAgent:
         self.q_reasoning_file = open(self.q_reasoning_filename, "w")
         self.q_reasoning_file.write(reasoning)
         self.q_reasoning_file.close()
+        self.q_reasoning_processed_filename = f"{logdir}/q_reasoning_processed.txt"
+        self.q_reasoning_processed_file = open(self.q_reasoning_processed_filename, "w")
+        self.q_reasoning_processed_file.write(reasoning_processed)
+        self.q_reasoning_processed_file.close()
         print("Policy updated!")
 
         self.training_episodes += 1
