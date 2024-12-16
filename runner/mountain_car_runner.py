@@ -1,6 +1,7 @@
 from world.mountain_car import MountainCarWorld
 from agent.mountain_car import MountainCarAgent
 from jinja2 import Environment, FileSystemLoader
+import os
 
 
 def run_training_loop(
@@ -48,7 +49,11 @@ def run_training_loop(
 
     for episode in range(num_episodes):
         print(f"Episode: {episode}")
-        agent.train_policy(world)
-        print(f"New Q Table: {agent.q_table}")
-        results = agent.evaluate_policy(world)
-        print(f"Results: {results}")
+        # create log dir
+        curr_episode_dir = f"{logdir}/episode_{episode}"
+        print(f"Creating log directory: {curr_episode_dir}")
+        os.makedirs(curr_episode_dir, exist_ok=True)
+        agent.train_policy(world, curr_episode_dir)
+        # print(f"New Q Table: {agent.q_table}")
+        results = agent.evaluate_policy(world, curr_episode_dir)
+        print(f"Episode {episode} Evaluation Results: {results}")
