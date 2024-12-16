@@ -87,7 +87,7 @@ class LLMBrain:
         )
         new_q_table = self.query_llm()
 
-        print(f"New Q-table: {new_q_table}")
+        # print(f"New Q-table: {new_q_table}")
 
         new_q_table_list = self.parse_q_table(new_q_table)
 
