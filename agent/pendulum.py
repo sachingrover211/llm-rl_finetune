@@ -42,6 +42,33 @@ class PendulumAgent:
         return world.get_accu_reward()
 
     def train_policy(self, world: PendulumWorld, logdir):
+
+        def parse_q_table(q_table_string):
+            new_q_values_list = []
+
+            # Update the Q-table based on the new Q-table
+            for row in q_table_string.split("\n"):
+                if row.strip():
+                    row = row.split("|")
+                    if len(row) == 3:
+                        try:
+                            state, action, q_value = row
+                            states = state.strip().strip("(").strip(")").strip().split(",")
+                            costheta = int(states[0].strip())
+                            sintheta = int(states[1].strip())
+                            angular_velocity = int(states[2].strip())
+                            action = action.strip().strip("(").strip(")").strip(',').strip()
+                            action = int(action.strip())
+                            q_value = float(q_value.strip())
+                            new_q_values_list.append(
+                                ((costheta, sintheta, angular_velocity), (action,), q_value)
+                            )
+
+                        except:
+                            pass
+
+            return new_q_values_list
+
         # Run the episode and collect the trajectory
         print(f"Rolling out episode {self.training_episodes}...")
         logging_filename = f"{logdir}/training_rollout.txt"
@@ -51,8 +78,10 @@ class PendulumAgent:
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
-        new_q_values_list, reasoning = self.llm_brain.llm_update_q_table(
-            self.q_table, self.replay_buffer
+        new_q_values_list, (reasoning, reasoning_processed) = (
+            self.llm_brain.llm_update_q_table(
+                self.q_table, self.replay_buffer, parse_q_table
+            )
         )
         self.q_table.update_policy(new_q_values_list)
         logging_q_filename = f"{logdir}/q_table.txt"
@@ -63,6 +92,10 @@ class PendulumAgent:
         self.q_reasoning_file = open(self.q_reasoning_filename, "w")
         self.q_reasoning_file.write(reasoning)
         self.q_reasoning_file.close()
+        self.q_reasoning_processed_filename = f"{logdir}/q_reasoning_processed.txt"
+        self.q_reasoning_processed_file = open(self.q_reasoning_processed_filename, "w")
+        self.q_reasoning_processed_file.write(reasoning_processed)
+        self.q_reasoning_processed_file.close()
         print("Policy updated!")
 
         self.training_episodes += 1

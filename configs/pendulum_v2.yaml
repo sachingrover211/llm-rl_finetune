@@ -6,13 +6,13 @@ num_costheta_bins: 5
 num_sintheta_bins: 5
 num_angular_velocity_bins: 5
 num_action_bins: 5
-logdir: logs/pendulum_v1
+logdir: logs/pendulum_v2_2
 actions: [ [ 0, 1, 2, 3, 4 ] ]
 states: [ [ -2, -1, 0, 1, 2 ], [ -2, -1, 0, 1, 2 ], [ -2, -1, 0, 1, 2 ] ]
 max_traj_count: 20
 max_traj_length: 200
 template_dir: agent/policy/templates
-llm_si_template_name: pendulum_si.j2
+llm_si_template_name: pendulum_si_2.j2
 llm_output_conversion_template_name: pendulum_llm_output_conversion.j2
 llm_model_name: o1-preview
 num_evaluation_episodes: 20
