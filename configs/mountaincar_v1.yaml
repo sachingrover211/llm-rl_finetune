@@ -1,3 +1,4 @@
+task: mountaincar
 num_episodes: 20
 gym_env_name: MountainCar-v0
 render_mode: null

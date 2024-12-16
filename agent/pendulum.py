@@ -1,10 +1,10 @@
 from agent.policy.q import QTable
 from agent.policy.replay_buffer import ReplayBuffer
 from agent.policy.llm_brain import LLMBrain
-from world.mountain_car import MountainCarWorld
+from world.pendulum import PendulumWorld
 
 
-class MountainCarAgent:
+class PendulumAgent:
     def __init__(
         self,
         logdir,
@@ -28,7 +28,7 @@ class MountainCarAgent:
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
 
-    def rollout_episode(self, world: MountainCarWorld, logging_file):
+    def rollout_episode(self, world: PendulumWorld, logging_file):
         state = world.reset()
         self.replay_buffer.start_new_trajectory()
         logging_file.write(f"state | action | reward\n")
@@ -41,13 +41,12 @@ class MountainCarAgent:
             state = next_state
         return world.get_accu_reward()
 
-    def train_policy(self, world: MountainCarWorld, logdir):
+    def train_policy(self, world: PendulumWorld, logdir):
         # Run the episode and collect the trajectory
         print(f"Rolling out episode {self.training_episodes}...")
         logging_filename = f"{logdir}/training_rollout.txt"
         logging_file = open(logging_filename, "w")
         result = self.rollout_episode(world, logging_file)
-        logging_file.close()
         print(f"Result: {result}")
 
         # Update the policy using llm_brain, q_table and replay_buffer
@@ -68,12 +67,11 @@ class MountainCarAgent:
 
         self.training_episodes += 1
 
-    def evaluate_policy(self, world: MountainCarWorld, logdir):
+    def evaluate_policy(self, world: PendulumWorld, logdir):
         results = []
         for idx in range(self.num_evaluation_episodes):
             logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
             logging_file = open(logging_filename, "w")
             result = self.rollout_episode(world, logging_file)
             results.append(result)
-            logging_file.close()
         return results
