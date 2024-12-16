@@ -21,7 +21,7 @@ class QTable(Policy):
         super().__init__(states, actions)
         self.q_table_length = self._calculate_q_table_length(states, actions)
         print(f"Q Table length: {self.q_table_length}")
-        if self.q_table_length > 1000:
+        if self.q_table_length > 1500:
             raise Exception("Q Table is too large to handle")
         
         self.initialize_policy()
