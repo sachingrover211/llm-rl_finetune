@@ -1,0 +1,14 @@
+task: pendulum_continuous
+num_episodes: 100
+gym_env_name: Pendulum-v1
+render_mode: null
+logdir: logs/pendulum_continuous_v1_100
+dim_actions: 1
+dim_states: 3
+max_traj_count: 20
+max_traj_length: 200
+template_dir: agent/policy/templates
+llm_si_template_name: pendulum_continuous_si.j2
+llm_output_conversion_template_name: pendulum_continuous_llm_output_conversion.j2
+llm_model_name: o1-preview
+num_evaluation_episodes: 20
