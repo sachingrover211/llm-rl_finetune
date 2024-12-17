@@ -1,0 +1,23 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the environment of pendulum.
+The system consists of a pendulum attached at one end to a fixed point, and the other end being free. The pendulum starts in a random position and the goal is to apply torque on the free end to swing it into an upright position, with its center of gravity right above the fixed point, and keep it there.
+
+The state of the system in represented in 3 variables: 
+- cos(theta) [ranging from -1.0 to 1.0], positive values indicate the pendulum is above of the fixed point, negative values indicate the pendulum is below the fixed point.
+- sin(theta) [ranging from -1.0 to 1.0], positive values indicate the pendulum is to the left of the fixed point, negative values indicate the pendulum is to the right of the fixed point.
+- angular velocity [ranging from -8.0 to 8.0], positive values indicate the pendulum is moving to the anti-clockwise, negative values indicate the pendulum is moving clockwise.
+
+The available action is to apply torque to the pendulum, with values ranging from -2.0 to 2.0.
+
+Next, you will see a replay buffer that shows the reward values for each state-action pair:
+{{ replay_buffer_string }}
+
+Please use the above information to improve the policy parameters. The policy is a linear policy, such that action(1x1) = np.matmul(state(1x3), weight(3x1)) + bias(1x1) Following is the current parameters (weight concatenated with bias):
+{{ parameters_string }}
+
+Please provide a set of new parameters that you think will help the agent achieve its goal. Please follow the same format as in the original input: 
+Weights:
+w1
+w2
+w3
+Bias:
+b1
