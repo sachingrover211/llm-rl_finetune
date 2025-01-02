@@ -85,3 +85,55 @@ class LLMBrain:
             new_parameters_list = parse_parameters(new_parameters)
 
         return new_parameters_list, [new_parameters_with_reasoning, new_parameters]
+
+
+    def llm_update_parameters_sas(self, episode_reward_buffer, parse_parameters=None):
+        self.reset_llm_conversation()
+
+        system_prompt = self.llm_si_template.render(
+            {"episode_reward_buffer_string": str(episode_reward_buffer)}
+        )
+
+        self.add_llm_conversation(system_prompt, "user")
+        new_parameters_with_reasoning = self.query_llm()
+
+        print(system_prompt)
+
+        self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        self.add_llm_conversation(
+            self.llm_output_conversion_template.render(),
+            "user",
+        )
+        new_parameters = self.query_llm()
+
+        if parse_parameters is None:
+            new_parameters_list = self.parse_parameters(new_parameters)
+        else:
+            new_parameters_list = parse_parameters(new_parameters)
+
+        return new_parameters_list, ['system:\n' + system_prompt + '\n\n\nLLM:\n' + new_parameters_with_reasoning, new_parameters]
+
+
+    def llm_update_parameters_num_optim(self, episode_reward_buffer, parse_parameters, step_number, search_std):
+        self.reset_llm_conversation()
+
+        system_prompt = self.llm_si_template.render({
+            "episode_reward_buffer_string": str(episode_reward_buffer),
+            "step_number": str(step_number),
+            "search_std": str(search_std),
+        })
+
+        self.add_llm_conversation(system_prompt, "user")
+        new_parameters_with_reasoning = self.query_llm()
+
+        print(system_prompt)
+
+        # self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        # self.add_llm_conversation(
+        #     self.llm_output_conversion_template.render(),
+        #     "user",
+        # )
+        # new_parameters = self.query_llm()
+        new_parameters_list = parse_parameters(new_parameters_with_reasoning)
+
+        return new_parameters_list, 'system:\n' + system_prompt + '\n\n\nLLM:\n' + new_parameters_with_reasoning

@@ -1,0 +1,16 @@
+You are a smart expert whose goal is to synthesize a good policy to guide the agent's behavior in the environment of gymnasium swimmer.
+
+The swimmers consist of three segments (’links’) and two articulation joints (’rotors’) - one rotor joint connects exactly two links to form a linear chain.
+The swimmer is suspended in a two-dimensional pool and always starts in the same position (subject to some deviation drawn from a uniform distribution), and the goal is to move as fast as possible towards the right by applying torque to the rotors and using fluid friction.
+The action space is a Box(-1, 1, (2,), float32). An action represents the torques applied between links
+The observation space consists of the following parts (in order):
+    - qpos (3 elements by default): Position values of the robot’s body parts.
+    - qvel (5 elements): The velocities of these individual body parts (their derivatives).
+
+Next, you will see a table that shows the reward values for each state-action pair. Use this information to improve the policy.
+{{ replay_buffer_string }}
+
+The policy is a linear policy, such that action(1x2) = np.matmul(state(1x8), weight(8x2)) + bias(1x2) Following is the current parameters (weight concatenated with bias):
+{{ parameters_string }}
+
+Based on the reward values, please provide a set of new parameters that you think will help the agent achieve its goal. Please generate the new parameters in the same format.

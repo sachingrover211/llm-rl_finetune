@@ -1,0 +1,14 @@
+task: halfcheetah_continuous
+num_episodes: 100
+gym_env_name: HalfCheetah-v5
+render_mode: null
+logdir: logs/halfcheetah_continuous_v1_100
+dim_actions: 6
+dim_states: 17
+max_traj_count: 20
+max_traj_length: 1000
+template_dir: agent/policy/templates
+llm_si_template_name: halfcheetah_continuous_si.j2
+llm_output_conversion_template_name: halfcheetah_continuous_llm_output_conversion.j2
+llm_model_name: o1-preview
+num_evaluation_episodes: 20

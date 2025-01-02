@@ -1,0 +1,59 @@
+from world.swimmer_continuous import SwimmerContinuousWorld
+from agent.swimmer_random_search import SwimmerRandomSearchAgent
+from jinja2 import Environment, FileSystemLoader
+import os
+
+
+def run_training_loop(
+    task,
+    num_episodes,
+    gym_env_name,
+    render_mode,
+    logdir,
+    dim_actions,
+    dim_states,
+    max_traj_count,
+    max_traj_length,
+    num_evaluation_episodes,
+    warmup_episodes,
+    search_std,
+    warmup_dir,
+):
+    assert task == "swimmer_continuous_random_search"
+
+    world = SwimmerContinuousWorld(
+        gym_env_name, 
+        render_mode, 
+        max_traj_length,
+    )
+    agent = SwimmerRandomSearchAgent(
+        logdir,
+        dim_actions,
+        dim_states,
+        max_traj_count,
+        max_traj_length,
+        num_evaluation_episodes,
+    )
+
+    if not warmup_dir:
+        warmup_dir = f"{logdir}/warmup"
+        os.makedirs(warmup_dir, exist_ok=True)
+        agent.random_warmup(world, warmup_dir, warmup_episodes)
+    else:
+        agent.replay_buffer.load(warmup_dir)
+    for episode in range(num_episodes):
+        print(f"Episode: {episode}")
+        # create log dir
+        curr_episode_dir = f"{logdir}/episode_{episode}"
+        print(f"Creating log directory: {curr_episode_dir}")
+        os.makedirs(curr_episode_dir, exist_ok=True)
+        for trial_idx in range(5):
+            try:
+                agent.train_policy(world, curr_episode_dir, search_std)
+                print(f"{trial_idx + 1}th trial attempt succeeded in training")
+                break
+            except Exception as e:
+                print(f"{trial_idx + 1}th trial attempt failed with error in training: {e}")
+                continue
+        results = agent.evaluate_policy(world, curr_episode_dir)
+        print(f"Episode {episode} Evaluation Results: {results}")

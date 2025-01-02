@@ -1,0 +1,51 @@
+You are a smart expert whose goal is to synthesize a good policy to guide the agent's behavior in the environment of gymnasium HalfCheetah-v5.
+
+The HalfCheetah is a 2-dimensional robot consisting of 9 body parts and 8 joints connecting them (including two paws). The goal is to apply torque to the joints to make the cheetah run forward (right) as fast as possible, with a positive reward based on the distance moved forward and a negative reward for moving backward. The cheetah’s torso and head are fixed, and torque can only be applied to the other 6 joints over the front and back thighs (which connect to the torso), the shins (which connect to the thighs), and the feet (which connect to the shins).
+The action space is a Box(-1, 1, (6,), float32). An action represents the torques applied at the hinge joints.
+-------------------------------------------------------------------------
+| Num | Action | Control Min | Control Max | Name | Joint | Type (Unit) |
+-------------------------------------------------------------------------
+| 0 | back thigh joint | -1 | 1 | back thigh joint | Torque (Nm) |
+| 1 | back shin joint | -1 | 1 | back shin joint | Torque (Nm) |
+| 2 | back foot joint | -1 | 1 | back foot joint | Torque (Nm) |
+| 3 | front thigh joint | -1 | 1 | front thigh joint | Torque (Nm) |
+| 4 | front shin joint | -1 | 1 | front shin joint | Torque (Nm) |
+| 5 | front foot joint | -1 | 1 | front foot joint | Torque (Nm) |
+-------------------------------------------------------------------------
+
+The observation space consists of the following parts (in order):
+    - qpos (8 elements by default): Position values of the robot’s body parts.
+    - qvel (9 elements): The velocities of these individual body parts (their derivatives).
+
+By default, the observation does not include the robot’s x-coordinate (rootx). This can be included by passing exclude_current_positions_from_observation=False during construction. In this case, the observation space will be a Box(-Inf, Inf, (18,), float64), where the first observation element is the x-coordinate of the robot. Regardless of whether exclude_current_positions_from_observation is set to True or False, the x- and y-coordinates are returned in info with the keys "x_position" and "y_position", respectively.
+By default, however, the observation space is a Box(-Inf, Inf, (17,), float64) where the elements are as follows:
+-------------------------------------------------------------------------
+| Num | Observation | Min | Max | Name | Joint | Type (Unit) |
+-------------------------------------------------------------------------
+| 0 | z-coordinate of the front tip | -Inf | Inf | rootz | slide | position (m) |
+| 1 | angle of the front tip | -Inf | Inf | rooty | hinge | angle (rad) |
+| 2 | angle of the back thigh | -Inf | Inf | bthigh | hinge | angle (rad) |
+| 3 | angle of the back shin | -Inf | Inf | bshin | hinge | angle (rad) |
+| 4 | angle of the back foot | -Inf | Inf | bfoot | hinge | angle (rad) |
+| 5 | angle of the front thigh | -Inf | Inf | fthigh | hinge | angle (rad) |
+| 6 | angle of the front shin | -Inf | Inf | fshin | hinge | angle (rad) |
+| 7 | angle of the front foot | -Inf | Inf | ffoot | hinge | angle (rad) |
+| 8 | velocity of the x-coordinate of front tip | -Inf | Inf | rootx | slide | velocity (m/s) |
+| 9 | velocity of the z-coordinate of front tip | -Inf | Inf | rootz | slide | velocity (m/s) |
+| 10 | angular velocity of the front tip | -Inf | Inf | rooty | hinge | angular velocity (rad/s) |
+| 11 | angular velocity of the back thigh | -Inf | Inf | bthigh | hinge | angular velocity (rad/s) |
+| 12 | angular velocity of the back shin | -Inf | Inf | bshin | hinge | angular velocity (rad/s) |
+| 13 | angular velocity of the back foot | -Inf | Inf | bfoot | hinge | angular velocity (rad/s) |
+| 14 | angular velocity of the front thigh | -Inf | Inf | fthigh | hinge | angular velocity (rad/s) |
+| 15 | angular velocity of the front shin | -Inf | Inf | fshin | hinge | angular velocity (rad/s) |
+| 16 | angular velocity of the front foot | -Inf | Inf | ffoot | hinge | angular velocity (rad/s) |
+-------------------------------------------------------------------------
+
+
+Next, you will see a table that shows the replay buffer of the reward values for each state-action pair. Use this information to improve the policy.
+{{ replay_buffer_string }}
+
+The policy is a linear policy, such that action(1x6) = np.matmul(state(1x17), weight(17x6)) + bias(1x6) Following is the current parameters (weight concatenated with bias):
+{{ parameters_string }}
+
+Based on the reward values, please provide a set of new parameters that you think will help the agent achieve its goal. Please generate the new parameters in the same format.

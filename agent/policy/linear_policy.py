@@ -18,6 +18,10 @@ class LinearPolicy(Policy):
 
     def get_action(self, state):
         state = state.T
+        # print(state.shape, self.weight.shape, self.bias.shape)
+        # print(np.matmul(state, self.weight).shape, (np.matmul(state, self.weight) + self.bias).shape)
+        # print((np.matmul(state, self.weight) + self.bias).shape)
+        # print()
         return np.matmul(state, self.weight) + self.bias
 
     def __str__(self):
@@ -34,5 +38,7 @@ class LinearPolicy(Policy):
         return output
 
     def update_policy(self, weight_and_bias_list):
+        if weight_and_bias_list is None:
+            return
         self.weight = np.array(weight_and_bias_list[:-1])
         self.bias = np.expand_dims(np.array(weight_and_bias_list[-1]), axis=0)

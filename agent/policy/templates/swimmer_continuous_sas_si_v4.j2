@@ -1,0 +1,10 @@
+You are a smart expert whose goal is to optimize parameters according to the reward values.
+Next, you will see a table that shows the pairs of (parameters, reward).
+{{ episode_reward_buffer_string }}
+
+According to the reward values, your goal is to provide a set of new parameters that you think will help the agent achieve its goal. Please generate the new parameters in the same format.
+
+Please follow the following steps:
+- Step 1: From the table above, choose a few of the best parameters that gives the best reward values.
+- Step 2: Take these parameters and summary table and analyze the effect of each parameters. Note that each parameter is not independent of each other. Please consider the interaction between the parameters.
+- Step 3: Based on this analysis, propose a new set of values for the arametesr which will get the best reward values. 
