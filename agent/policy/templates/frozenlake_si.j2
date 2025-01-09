@@ -1,0 +1,13 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the frozen lake environment.
+The frozen lake environment is based on a 2D grid where the agent (robot) can move left, down, right and up (corresponding to action 0, 1, 2, 3). The goal of the robot is to navigate the grid from top left corner to bottom right corner. The grid also consist of holes where the ice is broken and robot dies if it accesses the cell. The grid is shown by --
+{{ map }}
+where A represents the position of the agent, I represents the frozen lake, H represents the hole in ice and G represents the goal.
+
+Next, you will see a table that shows the reward values for each state-action pair. Use this information to improve the q-table.
+Note, that the state is discretized and described by the position of the agent.
+{{ replay_buffer_string }}
+
+This reward table is generated based on the previous q-table:
+{{ q_table_string }}
+
+Based on the reward values, please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value, uncertainty).
