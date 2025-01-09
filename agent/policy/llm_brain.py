@@ -3,6 +3,7 @@ from openai import OpenAI
 import random
 import numpy as np
 import os
+import re
 import time
 from jinja2 import Template
 
@@ -92,3 +93,52 @@ class LLMBrain:
         new_q_table_list = self.parse_q_table(new_q_table)
 
         return new_q_table_list, new_q_table_with_reasoning
+
+
+    def llm_update_linear_policy(self, linear_policy, average_reward, replay_buffer):
+        self.reset_llm_conversation()
+
+        system_prompt = self.llm_si_template.render(
+            {
+                "replay_buffer_string": str(replay_buffer),
+                "matrix_string": str(linear_policy),
+                "reward": average_reward
+            }
+        )
+
+        self.add_llm_conversation(system_prompt, "user")
+        matrix_response = self.query_llm()
+
+        self.add_llm_conversation(matrix_response, "assistant")
+        self.add_llm_conversation(
+            self.llm_output_conversion_template.render(),
+            "user",
+        )
+
+        response = self.query_llm()
+
+        updated_matrix = self.parse_parameters(response)
+
+        return updated_matrix, ""
+
+
+    def parse_parameters(self, parameters_string):
+        new_parameters_list = []
+        reg = "[0-9 .-]+,[0-9 .-]+"
+
+        # Update the Q-table based on the new Q-table
+        for row in parameters_string.split("\n"):
+            if row.strip().strip(","):
+                try:
+                    temp = re.findall(reg, row)
+                    if len(temp) == 0:
+                        continue
+                    temp = temp[0]
+                    parameters_row = [float(x.strip().strip(',')) for x in temp.strip().split(",")]
+                    new_parameters_list.append(parameters_row)
+                    if len(new_parameters_list) == 5:
+                        break
+                except Exception as e:
+                    print(e)
+
+        return new_parameters_list

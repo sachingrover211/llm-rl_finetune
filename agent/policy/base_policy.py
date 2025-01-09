@@ -26,7 +26,7 @@ class Policy:
         return "\n".join(table)
 
 
-    def initlize_policy(self):
+    def initialize_policy(self):
         """
         ideally should setup the self.mapping state and action pairs
         """

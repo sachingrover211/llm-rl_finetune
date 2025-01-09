@@ -1,39 +1,53 @@
 import numpy as np
-from agent.policy.base_polich import Policy
+from agent.policy.base_policy import Policy
 
 
 class LinearPolicy(Policy):
-    def __init__(self, state, actions):
-        super().__init__(state, actions)
-
-        self.dim_states = len(states)
-        self.dim_actions = len(actions)
-        # I dont think we need this but saving none the less
-        self.state = state
-        self.actions = actions
+    def __init__(self, dim_states, dim_actions):
+        super().__init__(dim_states, dim_actions)
+        self.dim_states =dim_states
+        self.dim_actions = dim_actions
+        self.weight = np.random.rand(self.dim_states, self.dim_actions)
+        self.bias = np.random.rand(1, self.dim_actions)
 
 
     def initialize_policy(self):
         self.weight = np.random.rand(self.dim_states, self.dim_actions)
         self.bias = np.random.rand(1, self.dim_actions)
-        
+
 
     def get_action(self, state):
-        return self.weight*state + self.bias
+        state = state.T
+        # print(state.shape, self.weight.shape, self.bias.shape)
+        # print(np.matmul(state, self.weight).shape, (np.matmul(state, self.weight) + self.bias).shape)
+        # print((np.matmul(state, self.weight) + self.bias).shape)
+        # print()
+        return np.matmul(state, self.weight) + self.bias
 
 
-    def __str__(self)
-        output = ""
+    def __str__(self):
+        output = "Weights:\n"
         for w in self.weight:
-            output = "\t".join([str(i) for i in w])
+            output += ", ".join([str(i) for i in w])
             output += "\n"
 
-        output += "\t".join([str(i) for i in b])
+        output += "Bias:\n"
+        for b in self.bias:
+            output += ", ".join([str(i) for i in b])
+            output += "\n"
 
         return output
 
 
-    def update_policy(self, weight):
-        self.weight = weight[:-1]
-        self.bias = weight[-1]
-
+    def update_policy(self, weight_and_bias_list):
+        copy_weight = np.copy(self.weight)
+        copy_bias = np.copy(self.bias)
+        try:
+            if weight_and_bias_list is None:
+                return
+            self.weight = np.array(weight_and_bias_list[:-1])
+            self.bias = np.expand_dims(np.array(weight_and_bias_list[-1]), axis=0)
+        except Exception as e:
+            print("Updating policy error", e)
+            self.weight = copy_weight
+            self.bias = copy_bias
