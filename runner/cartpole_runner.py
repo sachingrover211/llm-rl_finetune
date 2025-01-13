@@ -36,7 +36,7 @@ def run_training_loop(
         llm_output_conversion_template_name
     )
     llm_ui_template = None
-    if llm_ui_template is not "None":
+    if llm_ui_template != "None":
         llm_ui_template = jinja2_env.get_template(llm_ui_template_name)
 
     world = CartpoleWorld(
