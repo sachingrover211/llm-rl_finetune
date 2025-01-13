@@ -78,13 +78,13 @@ class CartpoleWorld(BaseWorld):
 
     def step(self, action, is_recording = False):
         #action = CartpoleWorld.ACTIONS[action]
-        state, reward, done, _, _ = self.env.step(action)
+        state, reward, done, truncated, _ = self.env.step(action)
         if is_recording:
             self.env.render()
 
         self.total_reward += reward
 
-        return self.decode_state(state), reward, done
+        return self.decode_state(state), reward, done or truncated
 
 
     def get_accu_reward(self):

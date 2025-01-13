@@ -124,6 +124,26 @@ class ReplayBuffer:
 
         return samples
 
+    def sample_contiguous(self, number_of_rows):
+        traj_index = random.randint(0, self.count - 1)
+        trajectory = self.buffer[traj_index]
+        samples = list()
+        if len(trajectory.buffer) <= (number_of_rows + 1):
+            return traj_index, list(range(0, len(trajectory.buffer)))
+
+        start_index = random.randint(0, len(trajectory.buffer) - number_of_rows - 1)
+        return traj_index, list(range(start_index, start_index + number_of_rows))
+
+
+    def print_trajectory(self, traj_index, rows):
+        output = list()
+        output.append("Trajectory | Step | State | Action | Reward")
+        trajectory = self.buffer[traj_index]
+        for r_index in rows:
+            output.append(f"{traj_index} | {trajectory.print_row(r_index)}")
+
+        return "\n".join(output)
+
 
     def print_buffer(self):
         # this prints the buffer as one big table

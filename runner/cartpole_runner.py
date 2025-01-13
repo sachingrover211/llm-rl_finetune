@@ -20,10 +20,13 @@ def run_training_loop(
     max_traj_length,
     template_dir,
     llm_si_template_name,
+    llm_ui_template_name,
     llm_output_conversion_template_name,
     llm_model_name,
     num_evaluation_episodes,
-    record_video
+    record_video,
+    use_replay_buffer,
+    reset_llm_conversation,
 ):
     assert task == "cartpole"
 
@@ -32,6 +35,9 @@ def run_training_loop(
     llm_output_conversion_template = jinja2_env.get_template(
         llm_output_conversion_template_name
     )
+    llm_ui_template = None
+    if llm_ui_template is not "None":
+        llm_ui_template = jinja2_env.get_template(llm_ui_template_name)
 
     world = CartpoleWorld(
         render_mode,
@@ -48,10 +54,13 @@ def run_training_loop(
             max_traj_count,
             max_traj_length,
             llm_si_template,
+            llm_ui_template,
             llm_output_conversion_template,
             llm_model_name,
             num_evaluation_episodes,
-            record_video
+            record_video,
+            use_replay_buffer,
+            reset_llm_conversation
         )
     else:
         agent = CartpoleAgent(
@@ -63,10 +72,13 @@ def run_training_loop(
             max_traj_count,
             max_traj_length,
             llm_si_template,
+            llm_ui_template,
             llm_output_conversion_template,
             llm_model_name,
             num_evaluation_episodes,
-            record_video
+            record_video,
+            use_replay_buffer,
+            reset_llm_conversation
         )
 
     agent.initialize_policy(states, actions)

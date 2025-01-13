@@ -14,13 +14,17 @@ class LLMBrain:
         llm_si_template: Template,
         llm_output_conversion_template: Template,
         llm_model_name: str,
+        llm_ui_template: Template = None,
     ):
         self.llm_si_template = llm_si_template
+        self.llm_ui_template = llm_ui_template
         self.llm_output_conversion_template = llm_output_conversion_template
         self.client = OpenAI()
         self.llm_conversation = []
         assert llm_model_name in ["o1-preview", "gpt-4o"]
         self.llm_model_name = llm_model_name
+        self.is_first_query = True
+        self.episode = 0
 
     def reset_llm_conversation(self):
         self.llm_conversation = []
@@ -95,35 +99,74 @@ class LLMBrain:
         return new_q_table_list, new_q_table_with_reasoning
 
 
-    def llm_update_linear_policy(self, linear_policy, average_reward, replay_buffer):
-        self.reset_llm_conversation()
+    def llm_update_linear_policy(self, linear_policy, average_reward, replay_buffer = None):
+        #self.reset_llm_conversation()
 
-        system_prompt = self.llm_si_template.render(
-            {
+        repeated_template = self.llm_ui_template if self.llm_ui_template else self.llm_si_template
+
+        if repeated_template == self.llm_ui_template:
+            system_prompt = self.llm_si_template.render()
+
+        if replay_buffer:
+            repeated_prompt = repeated_template.render({
                 "replay_buffer_string": str(replay_buffer),
                 "matrix_string": str(linear_policy),
-                "reward": average_reward
-            }
-        )
+                "reward": average_reward,
+                "episode_number": self.episode
+            })
+        else:
+            repeated_prompt = repeated_template.render({
+                "matrix_string": str(linear_policy),
+                "reward": average_reward,
+                "episode_number": self.episode
+            })
 
-        self.add_llm_conversation(system_prompt, "user")
-        matrix_response = self.query_llm()
+        #print(system_prompt)
+        #print(repeated_prompt)
+        if self.is_first_query and repeated_template == self.llm_ui_template:
+            self.add_llm_conversation(system_prompt, "system")
+            self.is_first_query = False
 
-        self.add_llm_conversation(matrix_response, "assistant")
-        self.add_llm_conversation(
-            self.llm_output_conversion_template.render(),
-            "user",
-        )
+        self.add_llm_conversation(repeated_prompt, "user")
+        matrix_response_with_reasoning = self.query_llm()
 
-        response = self.query_llm()
+        #print(matrix_response_with_reasoning)
+        if replay_buffer:
+            # in this case we do not want to track all replay buffers
+            # thus we will not keep in llm_conversations
+            self.llm_conversation.pop(-1)
+            temp = repeated_template.render({
+                "replay_buffer_string": "",
+                "matrix_string": str(linear_policy),
+                "reward": average_reward,
+                "episode_number": self.episode
+            })
+            print(temp)
+            self.add_llm_conversation(temp, "user")
 
-        updated_matrix = self.parse_parameters(response)
+        self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
+        updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
-        return updated_matrix, ""
+        if len(updated_matrix) == 0:
+            self.add_llm_conversation(
+                self.llm_output_conversion_template.render(),
+                "user",
+            )
+            response = self.query_llm()
+            updated_matrix = self.parse_parameters(response)
+
+            self.add_llm_conversation(response, "assistant")
+
+        print(updated_matrix)
+        return updated_matrix, matrix_response_with_reasoning
 
 
     def parse_parameters(self, parameters_string):
         new_parameters_list = []
+        # this is for two dimensions, basically two actions
+        # for greater than two actions we will have to re-write this
+        # we can't do this individually as some numbers in the conversation
+        # will also get parsed.
         reg = "[0-9 .-]+,[0-9 .-]+"
 
         # Update the Q-table based on the new Q-table
