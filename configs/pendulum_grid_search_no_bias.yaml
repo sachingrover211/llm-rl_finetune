@@ -1,0 +1,17 @@
+task: pendulum_grid_search_no_bias
+num_episodes: 1000
+gym_env_name: Pendulum-v1
+render_mode: null
+logdir: logs/pendulum_grid_search_no_bias_10
+dim_actions: 1
+dim_states: 3
+max_traj_count: 1000
+max_traj_length: 1000
+template_dir: agent/policy/templates
+llm_si_template_name: numerical_optimization_search_std_mountaincar_expected_r_no_bias.j2
+llm_output_conversion_template_name: swimmer_continuous_sas_llm_output_conversion_v4.j2
+llm_model_name: gpt-4o
+num_evaluation_episodes: 1
+warmup_episodes: 0
+warmup_dir: null
+search_std: -1

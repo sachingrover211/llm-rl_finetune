@@ -13,8 +13,8 @@ class LinearPolicy(Policy):
         self.bias = np.random.rand(1, self.dim_actions)
 
     def initialize_policy(self):
-        self.weight = np.random.rand(self.dim_states, self.dim_actions) - 0.5
-        self.bias = np.random.rand(1, self.dim_actions) - 0.5
+        self.weight = np.random.rand(self.dim_states, self.dim_actions)
+        self.bias = np.random.rand(1, self.dim_actions)
 
     def get_action(self, state):
         state = state.T
@@ -22,7 +22,6 @@ class LinearPolicy(Policy):
         # print(np.matmul(state, self.weight).shape, (np.matmul(state, self.weight) + self.bias).shape)
         # print((np.matmul(state, self.weight) + self.bias).shape)
         # print()
-        # return np.matmul(state, self.weight + np.array([[2], [1]])) + self.bias + np.array([[-1]])
         return np.matmul(state, self.weight) + self.bias
 
     def __str__(self):

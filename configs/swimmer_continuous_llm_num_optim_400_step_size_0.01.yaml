@@ -2,13 +2,13 @@ task: swimmer_continuous_llm_num_optim
 num_episodes: 400
 gym_env_name: Swimmer-v5
 render_mode: null
-logdir: logs/swimmer_continuous_llm_num_optim_400_std_0.01
+logdir: logs/swimmer_continuous_llm_num_optim_400_std_0.01_removed_range
 dim_actions: 2
 dim_states: 8
 max_traj_count: 1000
 max_traj_length: 1000
 template_dir: agent/policy/templates
-llm_si_template_name: numerical_optimization_search_std.j2
+llm_si_template_name: numerical_optimization_search_std_swimmer.j2
 llm_output_conversion_template_name: swimmer_continuous_sas_llm_output_conversion_v4.j2
 llm_model_name: gpt-4o
 num_evaluation_episodes: 20

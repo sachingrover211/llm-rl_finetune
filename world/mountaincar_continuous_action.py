@@ -3,16 +3,16 @@ import gymnasium as gym
 import numpy as np
 
 
-class PendulumContinuousWorld(BaseWorld):
+class MountaincarContinuousActionWorld(BaseWorld):
     def __init__(
         self,
         gym_env_name,
         render_mode,
-        max_traj_length=200,
+        max_traj_length=300,
     ):
         super().__init__(gym_env_name)
         assert render_mode in ["human", "rgb_array", None]
-        self.env = gym.make(gym_env_name, render_mode=render_mode, g=6)
+        self.env = gym.make(gym_env_name, render_mode=render_mode)
         self.steps = 0
         self.accu_reward = 0
         self.max_traj_length = max_traj_length
@@ -25,6 +25,7 @@ class PendulumContinuousWorld(BaseWorld):
 
     def step(self, action):
         self.steps += 1
+        action = action[0]
         state, reward, done, _, _ = self.env.step(action)
         self.accu_reward += reward
 
@@ -33,6 +34,5 @@ class PendulumContinuousWorld(BaseWorld):
 
         return state, reward, done
 
-
     def get_accu_reward(self):
-        return self.accu_reward[0]
+        return self.accu_reward

@@ -13,6 +13,16 @@ from runner import (
     swimmer_continuous_sas_mean_std_runner,
     swimmer_continuous_random_search_runner,
     swimmer_continuous_llm_num_optim_runner,
+    mountaincar_continuous_action_llm_num_optim_runner,
+    mountaincar_continuous_action_llm_num_optim_no_bias_runner,
+    mountaincar_continuous_action_grid_search_no_bias_runner,
+    mujoco_invertedpendulum_llm_num_optim_no_bias_runner,
+    mujoco_invertedpendulum_grid_search_no_bias_runner,
+    pendulum_grid_search_no_bias_runner,
+    pendulum_llm_num_optim_no_bias_runner,
+    pendulum_llm_num_optim_no_bias_iter_runner,
+    mujoco_hopper_llm_num_optim_no_bias_iter_runner,
+    mujoco_hopper_llm_num_optim_no_bias_runner
 )
 
 
@@ -53,6 +63,28 @@ def main():
         swimmer_continuous_random_search_runner.run_training_loop(**config)
     elif config["task"] == "swimmer_continuous_llm_num_optim":
         swimmer_continuous_llm_num_optim_runner.run_training_loop(**config)
+    elif config["task"] == "mountaincar_continuous_action_llm_num_optim":
+        mountaincar_continuous_action_llm_num_optim_runner.run_training_loop(**config)
+    elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias":
+        mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "mountaincar_continuous_action_grid_search_no_bias":
+        mountaincar_continuous_action_grid_search_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "mujoco_invertedpendulum_llm_num_optim_no_bias":
+        mujoco_invertedpendulum_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "mujoco_invertedpendulum_grid_search_no_bias":
+        mujoco_invertedpendulum_grid_search_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "pendulum_grid_search_no_bias":
+        pendulum_grid_search_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "pendulum_llm_num_optim_no_bias":
+        pendulum_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "pendulum_llm_num_optim_no_bias_iterative":
+        pendulum_llm_num_optim_no_bias_iter_runner.run_training_loop(**config)
+    elif config["task"] == "mujoco_hopper_llm_num_optim_no_bias_iterative":
+        mujoco_hopper_llm_num_optim_no_bias_iter_runner.run_training_loop(**config)
+    elif config["task"] == "mujoco_hopper_llm_num_optim_no_bias":
+        mujoco_hopper_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias_norm":
+        mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_norm(**config)
     else:
         raise ValueError(f"Task {config['task']} not recognized.")
 

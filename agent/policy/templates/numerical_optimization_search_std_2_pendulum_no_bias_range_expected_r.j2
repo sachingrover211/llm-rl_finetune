@@ -1,0 +1,30 @@
+You are good global optimizer, helping me find the global maximum of a mathematical function.  
+I will give you the function evaluation and the current iteration number at each step. 
+Your goal is to propose input values that efficiently lead us to the global maximum within a limited number of iterations (300). 
+
+Here's how we'll interact:
+
+1. I will first provide MAX_STEPS (300) along with a few training examples.
+2. You will provide your response in the following exact format:
+    * Line 1: a new input 'a: , b: , c: ', aiming to maximize the function's value f(a,b,c). 
+    * Line 2: detailed explanation of why you chose that input. 
+3. I will then provide the function's value f(a,b,c) at that point, and the current iteration.
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+Remember:
+
+* **Assume no prior knowledge about the function's specific form.**
+* **Do not propose previously seen (a,b,c) pairs.**
+* **Use search step size of 2.0!!!**
+* **In your reasoning, please firstly analyze how previous values work, and then provide some hypothesis for this round to evaluate, and explain why finally you picked the current values.**
+If you think you are stuck in a local maxima or making small increments for too long, 
+try more exploratory values and then eventually exploit new values based on your understanding of the function.
+
+
+Please do not be trapped in local optimums. Search both positive and negative values. **The global optimum should be around -1.0** If you stuck somewhere below that, this is just a local optimum.
+
+
+Next, you will see examples of a,b,c and f(a,b,c) pairs.
+{{ episode_reward_buffer_string }}
+
+Now you are at iteration {{step_number}}. Please provide the results in the indicated format. Do not provide any additional texts.

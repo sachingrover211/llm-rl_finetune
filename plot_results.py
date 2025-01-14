@@ -22,7 +22,46 @@ all_succ = []
 # root_folder = 'logs/swimmer_continuous_random_search_0.005_take2'
 # root_folder = 'logs/swimmer_continuous_mean_std_sas_v5_400_std_0.01'
 # root_folder = 'logs/swimmer_continuous_llm_num_optim_400'
-root_folder = 'logs/swimmer_continuous_llm_num_optim_400_std_0.01'
+# root_folder = 'logs/swimmer_continuous_llm_num_optim_400_std_0.01'
+# root_folder = 'logs/swimmer_continuous_llm_num_optim_400_std_0.01_removed_range'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_0.1'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_take_2'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_take_3'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_take_4'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_take_5'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_take_6'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_take_7'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_shifted_parameters'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_range_shifted_parameters_explanation'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_2'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_3'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_4'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_5'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_6'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_7'
+# root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter'
+# root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_reduced_process'
+# root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_low_gravity_6_reduced_process'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_reduced_process'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_1000_no_bias_range_std_1_expected_r_iter_reduced_process_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_1000_no_bias_range_std_1_expected_r_iter_reduced_process_take_3'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params_math'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params_math_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params_math_llm'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params_math_llm_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params_math_llm_3'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_300_improved_std_range_no_bias_iterative_params_math_llm_4_o1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_change_expected_r_take_2'
+root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_no_bias_norm'
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
 for folder in all_folders:
@@ -33,20 +72,17 @@ for folder in all_folders:
     rewards_succ = []
     rewards_fail = []
     for filename in os.listdir(folder):
-        if 'evaluation' in filename:
+        # if 'evaluation' in filename:
+        if 'training' in filename:
         # if True:
             with open(os.path.join(folder, filename), 'r') as f:
                 lines = f.readlines()
-                try:
-                    last_line = lines[-1]
-                    total_reward = float(last_line.split()[-1])
-                except:
-                    last_line = lines[-2]
-                    total_reward = float(last_line.split()[-1])
-                if total_reward > -300:
-                    rewards_succ.append(total_reward)
-                else:
-                    rewards_fail.append(total_reward)
+                rewards = []
+                for line in lines:
+                    if 'Total reward' in line:
+                        total_reward = float(line.split()[-1])
+                        rewards.append(total_reward)
+                rewards_succ.append(np.mean(rewards))
     print(rewards_succ)
     print(rewards_fail)
     
@@ -60,9 +96,14 @@ for folder in all_folders:
     print("Standard deviation of reward for all episodes:", np.std(all_rewards))
     all_succ.append(np.mean(all_rewards))
 print(all_succ)
+print(max(all_succ))
+for i in range(len(all_succ)):
+    if all_succ[i] >= max(all_succ) * 0.95:
+        print(i + 1)
+        break
 
 
-all_succ = [x if x > -100 else None for x in all_succ]
+# all_succ = [x if x > -500 and x < 200 else None for x in all_succ]
 
 import matplotlib.pyplot as plt
 
@@ -86,4 +127,5 @@ plt.grid(True)
 plt.tight_layout()
 
 # Display the plot
+plt.savefig(f'results_curves/{root_folder}.png')
 plt.show()
