@@ -6,6 +6,7 @@ import os
 import re
 import time
 from jinja2 import Template
+import tiktoken
 
 
 class LLMBrain:
@@ -25,14 +26,26 @@ class LLMBrain:
         self.llm_model_name = llm_model_name
         self.is_first_query = True
         self.episode = 0
+        self.encoder = tiktoken.encoding_for_model(self.llm_model_name)
+        self.tokens = 0
+        self.token_limit = 30000
 
     def reset_llm_conversation(self):
         self.llm_conversation = []
 
     def add_llm_conversation(self, text, role):
         self.llm_conversation.append({"role": role, "content": text})
+        self.tokens += self.get_token_count(text)
+
+    def remove_llm_conversation(self, index):
+        popped_message = self.llm_conversation.pop(index)
+        self.tokens -= self.get_token_count(popped_message["content"])
 
     def query_llm(self):
+        while self.tokens > self.token_limit:
+            # keeping the system prompt and never removing that.
+            self.remove_llm_conversation(1)
+
         for attempt in range(5):
             try:
                 completion = self.client.chat.completions.create(
@@ -104,8 +117,10 @@ class LLMBrain:
 
         repeated_template = self.llm_ui_template if self.llm_ui_template else self.llm_si_template
 
-        if repeated_template == self.llm_ui_template:
+        if self.is_first_query and repeated_template == self.llm_ui_template:
             system_prompt = self.llm_si_template.render()
+            self.add_llm_conversation(system_prompt, "system")
+            self.is_first_query = False
 
         if replay_buffer:
             repeated_prompt = repeated_template.render({
@@ -120,44 +135,40 @@ class LLMBrain:
                 "reward": average_reward,
                 "episode_number": self.episode
             })
-
         #print(system_prompt)
         #print(repeated_prompt)
-        if self.is_first_query and repeated_template == self.llm_ui_template:
-            self.add_llm_conversation(system_prompt, "system")
-            self.is_first_query = False
-
         self.add_llm_conversation(repeated_prompt, "user")
         matrix_response_with_reasoning = self.query_llm()
 
         #print(matrix_response_with_reasoning)
-        if replay_buffer:
-            # in this case we do not want to track all replay buffers
-            # thus we will not keep in llm_conversations
-            self.llm_conversation.pop(-1)
-            temp = repeated_template.render({
-                "replay_buffer_string": "",
-                "matrix_string": str(linear_policy),
-                "reward": average_reward,
-                "episode_number": self.episode
-            })
-            print(temp)
-            self.add_llm_conversation(temp, "user")
+        #if replay_buffer:
+        #    # in this case we do not want to track all replay buffers
+        #    # thus we will not keep in llm_conversations
+        #    self.remove_llm_conversation(-1)
+        #    temp = repeated_template.render({
+        #        "replay_buffer_string": "",
+        #        "matrix_string": str(linear_policy),
+        #        "reward": average_reward,
+        #        "episode_number": self.episode
+        #    })
+        #    #print(temp)
+        #    self.add_llm_conversation(temp, "user")
 
-        self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
         updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
         if len(updated_matrix) == 0:
+            print("Could not parse matrix once, trying again")
             self.add_llm_conversation(
                 self.llm_output_conversion_template.render(),
-                "user",
+                "user"
             )
             response = self.query_llm()
             updated_matrix = self.parse_parameters(response)
+            #self.add_llm_conversation(response, "assistant")
+            # there is no need to keep the communication
+            self.remove_llm_conversation(-1)
 
-            self.add_llm_conversation(response, "assistant")
-
-        print(updated_matrix)
+        self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
         return updated_matrix, matrix_response_with_reasoning
 
 
@@ -176,12 +187,16 @@ class LLMBrain:
                     temp = re.findall(reg, row)
                     if len(temp) == 0:
                         continue
-                    temp = temp[0]
-                    parameters_row = [float(x.strip().strip(',')) for x in temp.strip().split(",")]
-                    new_parameters_list.append(parameters_row)
+                    for t in temp:
+                        parameters_row = [float(x.strip().strip(',')) for x in t.strip().split(",")]
+                        new_parameters_list.append(parameters_row)
                     if len(new_parameters_list) == 5:
                         break
                 except Exception as e:
-                    print(e)
+                    print(f"Error while parsing {e}")
 
         return new_parameters_list
+
+
+    def get_token_count(self, message):
+        return len(self.encoder.encode(message))

@@ -39,7 +39,7 @@ class CartpoleAgent:
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
         self.record_video = record_video
-        self.replay_table_size = 10
+        self.replay_table_size = 100
         self.average_reward = 0
         self.use_replay_buffer = use_replay_buffer
         self.reset_llm_conversations = reset_llm_conversations

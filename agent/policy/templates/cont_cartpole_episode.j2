@@ -1,6 +1,6 @@
 Episode {{ episode_number }}:
 
-Table below shows the reward values for each state-action pair. The table has been randomly sampled from 20 different trajectories.  Use this information to improve the policy
+Table below shows the reward values for each state-action pair. The table shows a complete trajectory for one of the 20 evaluations, with maximum 100 rows.  Use this information to improve the policy
 {{ replay_buffer_string }}
 
 As explained, the policy is a linear policy, such that action(1x2) = np.matmul(state(1x4), weight(4x2)) + bias(1x2) Following is the current parameters (weight concatenated with bias):
