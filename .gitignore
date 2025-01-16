@@ -129,6 +129,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+VENV/*
 
 # Spyder project settings
 .spyderproject
@@ -163,3 +164,7 @@ cython_debug/
 
 # removing swap files for vim
 .*.*.sw*
+
+# Log files
+*.log
+logs/*
