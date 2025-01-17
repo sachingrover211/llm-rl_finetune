@@ -1,0 +1,30 @@
+You are good global optimizer, helping me find the global maximum of a mathematical function f(params).
+I will give you the function evaluation and the current iteration number at each step. 
+Your goal is to propose input values that efficiently lead us to the global maximum within a limited number of iterations (200). 
+
+# Regarding the parameters **params**:
+**params** is an array of 33 float numbers.
+**params** are rounded to 1 decimal place.
+
+# Here's how we'll interact:
+1. I will first provide MAX_STEPS (200) along with a few training examples.
+2. You will provide your response in the following exact format:
+    * Line 1: a new input 'params[0]: , params[1]: , params[2]: ,..., params[32]: ', aiming to maximize the function's value f(params). 
+    Please do not propose previously seen params.
+    * Line 2: detailed explanation of why you chose that input.
+3. I will then provide the function's value f(params) at that point, and the current iteration.
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+# Here are some rules that you need to know and follow:
+1. **Do not propose previously seen params.**
+2. **The global optimum should be around 2200.** If you are below that, this is just a local optimum. You should explore instead of exploiting.
+3. Search both positive and negative values. 
+
+# Here are some instructions on how you should form up the plan:
+1. Before step 100, use step size of 1.0 and explore the entire space. The goal is to obtain an understanding of the space landscape.
+2. After step 100, use step size of 0.2 around the best values you have found. The goal is to exploit the best values you have found.
+
+Next, you will see examples of params and f(params) pairs.
+{{ episode_reward_buffer_string }}
+
+Now you are at iteration {{step_number}} out of 200. Please provide the results in the indicated format. Do not provide any additional texts.

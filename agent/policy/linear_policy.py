@@ -13,8 +13,8 @@ class LinearPolicy(Policy):
         self.bias = np.random.rand(1, self.dim_actions)
 
     def initialize_policy(self):
-        self.weight = np.random.rand(self.dim_states, self.dim_actions) - 0.5
-        self.bias = np.random.rand(1, self.dim_actions) - 0.5
+        self.weight = np.round((np.random.rand(self.dim_states, self.dim_actions) - 0.5) * 12, 1)
+        self.bias = np.round(np.random.rand(1, self.dim_actions) - 0.5 * 12, 1)
 
     def get_action(self, state):
         state = state.T

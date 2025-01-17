@@ -67,7 +67,7 @@ class MujocoHopperLLMNumOptimAgent:
             s = input_text.split("\n")[0]
             print('response:', s)
             pattern = re.compile(
-                r'params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)'
+                r'delta\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)'
             )
             matches = pattern.findall(s)
 
@@ -122,6 +122,8 @@ class MujocoHopperLLMNumOptimAgent:
 
         print(self.policy.weight.shape)
         print(new_parameter_list.shape)
+        # Add the change delta to the current policy
+        new_parameter_list = new_parameter_list + self.policy.weight
         self.policy.update_policy(new_parameter_list)
         print(self.policy.weight.shape)
         logging_q_filename = f"{logdir}/parameters.txt"

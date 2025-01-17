@@ -1,5 +1,7 @@
 from world.mujoco_hopper import MujocoHopperWorld
 from agent.mujoco_hopper_llm_num_optim_no_bias import MujocoHopperLLMNumOptimAgent
+from agent.mujoco_hopper_llm_num_optim_no_bias_norm import MujocoHopperLLMNumOptimAgent as NormAgent
+from agent.mujoco_hopper_llm_num_optim_no_bias_delta import MujocoHopperLLMNumOptimAgent as DeltaAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -22,6 +24,8 @@ def run_training_loop(
     warmup_episodes,
     warmup_dir,
     search_std,
+    norm=False,
+    delta=False
 ):
     assert task == "mujoco_hopper_llm_num_optim_no_bias"
 
@@ -36,17 +40,44 @@ def run_training_loop(
         render_mode, 
         max_traj_length,
     )
-    agent = MujocoHopperLLMNumOptimAgent(
-        logdir,
-        dim_actions,
-        dim_states,
-        max_traj_count,
-        max_traj_length,
-        llm_si_template,
-        llm_output_conversion_template,
-        llm_model_name,
-        num_evaluation_episodes,
-    )
+
+    if not norm:
+        if not delta:
+            agent = MujocoHopperLLMNumOptimAgent(
+                logdir,
+                dim_actions,
+                dim_states,
+                max_traj_count,
+                max_traj_length,
+                llm_si_template,
+                llm_output_conversion_template,
+                llm_model_name,
+                num_evaluation_episodes,
+            )
+        else:
+            agent = DeltaAgent(
+                logdir,
+                dim_actions,
+                dim_states,
+                max_traj_count,
+                max_traj_length,
+                llm_si_template,
+                llm_output_conversion_template,
+                llm_model_name,
+                num_evaluation_episodes,
+            )
+    else:
+        agent = NormAgent(
+            logdir,
+            dim_actions,
+            dim_states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+        )
 
 
     if not warmup_dir:

@@ -157,7 +157,7 @@ class EpisodeRewardBufferNoBias:
                         except:
                             continue
                 rewards_mean = np.mean(rewards)
-                self.add(parameters[:-1], parameters[-1:], rewards_mean)
+                self.add(parameters, rewards_mean)
                 f.close()
         print(self)
 

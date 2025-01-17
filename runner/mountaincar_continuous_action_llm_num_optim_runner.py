@@ -1,5 +1,6 @@
 from world.mountaincar_continuous_action import MountaincarContinuousActionWorld
 from agent.mountain_car_continuous_llm_num_optim import MountaincarContinuousActionLLMNumOptimAgent
+from agent.mountain_car_continuous_llm_num_optim_norm import MountaincarContinuousActionLLMNumOptimAgent as NormAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -22,6 +23,7 @@ def run_training_loop(
     warmup_episodes,
     warmup_dir,
     search_std,
+    norm=False
 ):
     assert task == "mountaincar_continuous_action_llm_num_optim"
 
@@ -36,18 +38,31 @@ def run_training_loop(
         render_mode, 
         max_traj_length,
     )
-    agent = MountaincarContinuousActionLLMNumOptimAgent(
-        logdir,
-        dim_actions,
-        dim_states,
-        max_traj_count,
-        max_traj_length,
-        llm_si_template,
-        llm_output_conversion_template,
-        llm_model_name,
-        num_evaluation_episodes,
-    )
 
+    if not norm:
+        agent = MountaincarContinuousActionLLMNumOptimAgent(
+            logdir,
+            dim_actions,
+            dim_states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+        )
+    else:
+        agent = NormAgent(
+            logdir,
+            dim_actions,
+            dim_states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+        )
 
     if not warmup_dir:
         warmup_dir = f"{logdir}/warmup"

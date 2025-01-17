@@ -28,6 +28,46 @@ class MujocoHopperLLMNumOptimAgent:
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
 
+    def norm_state(self, state):
+        state_shape = state.shape
+        state = state.reshape(-1)
+        state = (
+            state
+            - np.array(
+                [
+                    1.21969523,
+                    -0.07732846,
+                    -0.03387155,
+                    -0.11787944,
+                    0.01851579,
+                    -0.24631438,
+                    -0.11216911,
+                    -1.15088138,
+                    -0.56647447,
+                    -1.07756056,
+                    0.03825606,
+                ]
+            )
+        ) / np.array(
+            [
+                0.06750773,
+                0.07105796,
+                0.06440366,
+                0.26929413,
+                0.3040902,
+                0.64106995,
+                0.54658025,
+                1.7840798,
+                1.82336508,
+                2.31487282,
+                3.72578326,
+            ]
+        )
+        return state.reshape(state_shape)
+
+    def sigmoid(self, z):
+        return (1 / (1 + np.exp(-z))) * 2 - 1
+
     def rollout_episode(self, world: MujocoHopperWorld, logging_file, record=True):
         state = world.reset()
         state = np.expand_dims(state, axis=0)
@@ -37,7 +77,7 @@ class MujocoHopperLLMNumOptimAgent:
         done = False
         step_idx = 0
         while not done:
-            action = self.policy.get_action(state.T)
+            action = self.sigmoid(self.policy.get_action(self.norm_state(state).T))
             action = np.reshape(action, (1, 3))
             next_state, reward, done = world.step(action)
             logging_file.write(f"{state.T[0]} | {action[0]} | {reward}\n")
@@ -45,9 +85,7 @@ class MujocoHopperLLMNumOptimAgent:
             step_idx += 1
         logging_file.write(f"Total reward: {world.get_accu_reward()}\n")
         if record:
-            self.replay_buffer.add(
-                self.policy.weight, world.get_accu_reward()
-            )
+            self.replay_buffer.add(self.policy.weight, world.get_accu_reward())
         return world.get_accu_reward()
 
     def random_warmup(self, world: MujocoHopperWorld, logdir, num_episodes):
@@ -65,10 +103,8 @@ class MujocoHopperLLMNumOptimAgent:
         def parse_parameters(input_text):
             # This regex looks for integers or floating-point numbers (including optional sign)
             s = input_text.split("\n")[0]
-            print('response:', s)
-            pattern = re.compile(
-                r'params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)'
-            )
+            print("response:", s)
+            pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
             matches = pattern.findall(s)
 
             # Convert matched strings to float (or int if you prefer to differentiate)
@@ -90,7 +126,7 @@ class MujocoHopperLLMNumOptimAgent:
             for parameters, reward in all_parameters:
                 l = ""
                 for i in range(33):
-                    l += f'params[{i}]: {parameters[i]:.1f}; '
+                    l += f"params[{i}]: {parameters[i]:.1f}; "
                 fxy = reward
                 l += f"f(params): {fxy:.1f}\n"
                 text += l
