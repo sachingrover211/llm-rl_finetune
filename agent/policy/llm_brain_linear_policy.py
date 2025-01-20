@@ -1,10 +1,11 @@
 import gymnasium as gym
-from openai import OpenAI
 import random
 import numpy as np
 import os
 import time
 from jinja2 import Template
+from openai import OpenAI
+import google.generativeai as genai
 
 
 class LLMBrain:
@@ -16,37 +17,57 @@ class LLMBrain:
     ):
         self.llm_si_template = llm_si_template
         self.llm_output_conversion_template = llm_output_conversion_template
-        self.client = OpenAI()
         self.llm_conversation = []
-        assert llm_model_name in ["o1-preview", "gpt-4o"]
+        assert llm_model_name in ["o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
         self.llm_model_name = llm_model_name
+        if "gemini" in llm_model_name:
+            self.model_group = "gemini"
+            genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+        else:
+            self.model_group = "openai"
+            self.client = OpenAI()
 
     def reset_llm_conversation(self):
         self.llm_conversation = []
 
     def add_llm_conversation(self, text, role):
-        self.llm_conversation.append({"role": role, "content": text})
+        if self.model_group == "openai":
+            self.llm_conversation.append({"role": role, "content": text})
+        else:
+            self.llm_conversation.append({"role": role, "parts": text})
 
     def query_llm(self):
         for attempt in range(5):
             try:
-                completion = self.client.chat.completions.create(
-                    model=self.llm_model_name,
-                    messages=self.llm_conversation,
-                )
-                # add the response to self.llm_conversation
-                self.add_llm_conversation(
-                    completion.choices[0].message.content, "assistant"
-                )
-                return completion.choices[0].message.content
+                if self.model_group == "openai":
+                    completion = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=self.llm_conversation,
+                    )
+                    response = completion.choices[0].message.content
+                else:
+                    model = genai.GenerativeModel(model_name=self.llm_model_name)
+                    chat_session = model.start_chat(history=self.llm_conversation[:-1])
+                    response = chat_session.send_message(
+                        self.llm_conversation[-1]["parts"]
+                    )
+                    response = response.text
             except Exception as e:
                 print(f"Error: {e}")
                 print("Retrying...")
                 if attempt == 4:
                     raise Exception("Failed")
                 else:
-                    print("Waiting for 120 seconds before retrying...")
-                    time.sleep(120)
+                    print("Waiting for 60 seconds before retrying...")
+                    time.sleep(60)
+
+            if self.model_group == "openai":
+                # add the response to self.llm_conversation
+                self.add_llm_conversation(response, "assistant")
+            else:
+                self.add_llm_conversation(response, "model")
+
+            return response
 
     def parse_parameters(self, parameters_string):
         new_parameters_list = []
@@ -55,7 +76,9 @@ class LLMBrain:
         for row in parameters_string.split("\n"):
             if row.strip().strip(","):
                 try:
-                    parameters_row = [float(x.strip().strip(',')) for x in row.split(",")]
+                    parameters_row = [
+                        float(x.strip().strip(",")) for x in row.split(",")
+                    ]
                     new_parameters_list.append(parameters_row)
                 except Exception as e:
                     print(e)
@@ -66,13 +89,19 @@ class LLMBrain:
         self.reset_llm_conversation()
 
         system_prompt = self.llm_si_template.render(
-            {"replay_buffer_string": str(replay_buffer), "parameters_string": str(parameters)}
+            {
+                "replay_buffer_string": str(replay_buffer),
+                "parameters_string": str(parameters),
+            }
         )
 
         self.add_llm_conversation(system_prompt, "user")
         new_parameters_with_reasoning = self.query_llm()
 
-        self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        if self.model_group == "openai":
+            self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        else:
+            self.add_llm_conversation(new_parameters_with_reasoning, "model")
         self.add_llm_conversation(
             self.llm_output_conversion_template.render(),
             "user",
@@ -85,7 +114,6 @@ class LLMBrain:
             new_parameters_list = parse_parameters(new_parameters)
 
         return new_parameters_list, [new_parameters_with_reasoning, new_parameters]
-
 
     def llm_update_parameters_sas(self, episode_reward_buffer, parse_parameters=None):
         self.reset_llm_conversation()
@@ -111,17 +139,26 @@ class LLMBrain:
         else:
             new_parameters_list = parse_parameters(new_parameters)
 
-        return new_parameters_list, ['system:\n' + system_prompt + '\n\n\nLLM:\n' + new_parameters_with_reasoning, new_parameters]
+        return new_parameters_list, [
+            "system:\n"
+            + system_prompt
+            + "\n\n\nLLM:\n"
+            + new_parameters_with_reasoning,
+            new_parameters,
+        ]
 
-
-    def llm_update_parameters_num_optim(self, episode_reward_buffer, parse_parameters, step_number, search_std):
+    def llm_update_parameters_num_optim(
+        self, episode_reward_buffer, parse_parameters, step_number, search_std
+    ):
         self.reset_llm_conversation()
 
-        system_prompt = self.llm_si_template.render({
-            "episode_reward_buffer_string": str(episode_reward_buffer),
-            "step_number": str(step_number),
-            "search_std": str(search_std),
-        })
+        system_prompt = self.llm_si_template.render(
+            {
+                "episode_reward_buffer_string": str(episode_reward_buffer),
+                "step_number": str(step_number),
+                "search_std": str(search_std),
+            }
+        )
 
         self.add_llm_conversation(system_prompt, "user")
         new_parameters_with_reasoning = self.query_llm()
@@ -136,4 +173,10 @@ class LLMBrain:
         # new_parameters = self.query_llm()
         new_parameters_list = parse_parameters(new_parameters_with_reasoning)
 
-        return new_parameters_list, 'system:\n' + system_prompt + '\n\n\nLLM:\n' + new_parameters_with_reasoning
+        return (
+            new_parameters_list,
+            "system:\n"
+            + system_prompt
+            + "\n\n\nLLM:\n"
+            + new_parameters_with_reasoning,
+        )
