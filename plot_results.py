@@ -71,8 +71,17 @@ all_succ = []
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_change_expected_r_take_3'
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_expected_r_delta_take_1'
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_delta_take_1'
-root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_expected_r_4o_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_expected_r_4o_take_1'
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_expected_r_gemini_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_expected_r_delta_4o_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_4o_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_expected_r_delta_gemini_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_take_3'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_reverse_take_1'
+root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_change_expected_r_take_4'
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
 for folder in all_folders:
@@ -105,7 +114,11 @@ for folder in all_folders:
     # print("Standard deviation of reward for failed episodes:", np.std(rewards_fail))
     print("Average reward for all episodes:", np.mean(all_rewards))
     print("Standard deviation of reward for all episodes:", np.std(all_rewards))
-    all_succ.append(np.mean(all_rewards))
+
+    if 'descent' in root_folder:
+        all_succ.append(1500 - np.mean(all_rewards))
+    else:
+        all_succ.append(np.mean(all_rewards))
 print(all_succ)
 print(max(all_succ))
 for i in range(len(all_succ)):
@@ -115,6 +128,7 @@ for i in range(len(all_succ)):
 
 
 # all_succ = [x if x > -500 and x < 200 else None for x in all_succ]
+# all_succ = [x if x < 200 else None for x in all_succ]
 
 import matplotlib.pyplot as plt
 

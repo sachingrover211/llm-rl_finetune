@@ -1,5 +1,6 @@
 import numpy as np
 from agent.policy.base_policy import Policy
+from decimal import Decimal
 
 
 class LinearPolicy(Policy):
@@ -33,6 +34,11 @@ class LinearPolicy(Policy):
     def update_policy(self, weight_and_bias_list):
         if weight_and_bias_list is None:
             return
-        self.weight = np.array(weight_and_bias_list).reshape(
+        self.weight = np.array(weight_and_bias_list)
+        self.weight = self.weight.reshape(-1)
+        for i in range(len(self.weight)):
+            self.weight[i] = Decimal(self.weight[i]).normalize()
+        
+        self.weight = self.weight.reshape(
             self.dim_states, self.dim_actions
         )

@@ -36,3 +36,6 @@ class MujocoHopperWorld(BaseWorld):
 
     def get_accu_reward(self):
         return self.accu_reward
+    
+    def get_negated_accu_reward(self):
+        return 1500 - self.accu_reward

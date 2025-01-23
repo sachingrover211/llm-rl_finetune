@@ -90,7 +90,7 @@ class MujocoHopperLLMNumOptimAgent:
             for parameters, reward in all_parameters:
                 l = ""
                 for i in range(33):
-                    l += f'params[{i}]: {parameters[i]}; '
+                    l += f'params[{i}]: {parameters[i]:.15g}; '
                 fxy = reward
                 l += f"f(params): {fxy:.2f}\n"
                 text += l

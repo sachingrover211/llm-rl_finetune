@@ -43,12 +43,12 @@ class MujocoHopperLLMNumOptimAgent:
             logging_file.write(f"{state.T[0]} | {action[0]} | {reward}\n")
             state = next_state
             step_idx += 1
-        logging_file.write(f"Total reward: {world.get_accu_reward()}\n")
+        logging_file.write(f"Total reward: {world.get_negated_accu_reward()}\n")
         if record:
             self.replay_buffer.add(
-                self.policy.weight, world.get_accu_reward()
+                self.policy.weight, world.get_negated_accu_reward()
             )
-        return world.get_accu_reward()
+        return world.get_negated_accu_reward()
 
     def random_warmup(self, world: MujocoHopperWorld, logdir, num_episodes):
         for episode in range(num_episodes):
@@ -58,7 +58,7 @@ class MujocoHopperLLMNumOptimAgent:
             logging_filename = f"{logdir}/warmup_rollout_{episode}.txt"
             logging_file = open(logging_filename, "w")
             result = self.rollout_episode(world, logging_file)
-            print(f"Result: {result}")
+            print(f"Total Cost (optimum is 400): {result}")
 
     def train_policy(self, world: MujocoHopperWorld, logdir, search_std):
 
