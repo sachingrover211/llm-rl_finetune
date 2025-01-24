@@ -4,6 +4,7 @@ from agent.mujoco_hopper_llm_num_optim_no_bias_norm import MujocoHopperLLMNumOpt
 from agent.mujoco_hopper_llm_num_optim_no_bias_delta import MujocoHopperLLMNumOptimAgent as DeltaAgent
 from agent.mujoco_hopper_llm_num_optim_no_bias_delta_descent import MujocoHopperLLMNumOptimAgent as DeltaDescentAgent
 from agent.mujoco_hopper_llm_num_optim_no_bias_delta_descent_reverse import MujocoHopperLLMNumOptimAgent as DeltaDescentReverseAgent
+from agent.mujoco_hopper_llm_num_optim_no_bias_beam import MujocoHopperLLMNumOptimBeamAgent as BeamAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -30,6 +31,9 @@ def run_training_loop(
     delta=False,
     grad_descent=False,
     reverse=False,
+    beam=False,
+    beam_width=5,
+    num_new_candidate=5,
 ):
     assert task == "mujoco_hopper_llm_num_optim_no_bias"
 
@@ -45,22 +49,25 @@ def run_training_loop(
         max_traj_length,
     )
 
-    if not norm:
-        if not delta:
-            agent = MujocoHopperLLMNumOptimAgent(
-                logdir,
-                dim_actions,
-                dim_states,
-                max_traj_count,
-                max_traj_length,
-                llm_si_template,
-                llm_output_conversion_template,
-                llm_model_name,
-                num_evaluation_episodes,
-            )
-        else:
-            if not grad_descent:
-                agent = DeltaAgent(
+    if beam:
+        agent = BeamAgent(
+            logdir,
+            dim_actions,
+            dim_states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+            beam_width=beam_width,
+            num_new_candidate=num_new_candidate
+        )
+
+    else:
+        if not norm:
+            if not delta:
+                agent = MujocoHopperLLMNumOptimAgent(
                     logdir,
                     dim_actions,
                     dim_states,
@@ -72,8 +79,8 @@ def run_training_loop(
                     num_evaluation_episodes,
                 )
             else:
-                if not reverse:
-                    agent = DeltaDescentAgent(
+                if not grad_descent:
+                    agent = DeltaAgent(
                         logdir,
                         dim_actions,
                         dim_states,
@@ -85,29 +92,42 @@ def run_training_loop(
                         num_evaluation_episodes,
                     )
                 else:
-                    agent = DeltaDescentReverseAgent(
-                        logdir,
-                        dim_actions,
-                        dim_states,
-                        max_traj_count,
-                        max_traj_length,
-                        llm_si_template,
-                        llm_output_conversion_template,
-                        llm_model_name,
-                        num_evaluation_episodes,
-                    )
-    else:
-        agent = NormAgent(
-            logdir,
-            dim_actions,
-            dim_states,
-            max_traj_count,
-            max_traj_length,
-            llm_si_template,
-            llm_output_conversion_template,
-            llm_model_name,
-            num_evaluation_episodes,
-        )
+                    if not reverse:
+                        agent = DeltaDescentAgent(
+                            logdir,
+                            dim_actions,
+                            dim_states,
+                            max_traj_count,
+                            max_traj_length,
+                            llm_si_template,
+                            llm_output_conversion_template,
+                            llm_model_name,
+                            num_evaluation_episodes,
+                        )
+                    else:
+                        agent = DeltaDescentReverseAgent(
+                            logdir,
+                            dim_actions,
+                            dim_states,
+                            max_traj_count,
+                            max_traj_length,
+                            llm_si_template,
+                            llm_output_conversion_template,
+                            llm_model_name,
+                            num_evaluation_episodes,
+                        )
+        else:
+            agent = NormAgent(
+                logdir,
+                dim_actions,
+                dim_states,
+                max_traj_count,
+                max_traj_length,
+                llm_si_template,
+                llm_output_conversion_template,
+                llm_model_name,
+                num_evaluation_episodes,
+            )
 
 
     if not warmup_dir:
@@ -130,5 +150,5 @@ def run_training_loop(
             except Exception as e:
                 print(f"{trial_idx + 1}th trial attempt failed with error in training: {e}")
                 continue
-        # results = agent.evaluate_policy(world, curr_episode_dir)
-        # print(f"Episode {episode} Evaluation Results: {results}")
+        results = agent.evaluate_policy(world, curr_episode_dir)
+        print(f"Episode {episode} Evaluation Results: {results}")

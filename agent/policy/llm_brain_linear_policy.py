@@ -18,7 +18,7 @@ class LLMBrain:
         self.llm_si_template = llm_si_template
         self.llm_output_conversion_template = llm_output_conversion_template
         self.llm_conversation = []
-        assert llm_model_name in ["o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
+        assert llm_model_name in ["o1-preview", "gpt-4o", "gemini-2.0-flash-exp", "gpt-4o-mini"]
         self.llm_model_name = llm_model_name
         if "gemini" in llm_model_name:
             self.model_group = "gemini"
@@ -172,6 +172,80 @@ class LLMBrain:
         # )
         # new_parameters = self.query_llm()
         new_parameters_list = parse_parameters(new_parameters_with_reasoning)
+
+        return (
+            new_parameters_list,
+            "system:\n"
+            + system_prompt
+            + "\n\n\nLLM:\n"
+            + new_parameters_with_reasoning,
+        )
+
+
+
+    def llm_propose_parameters_num_optim_based_on_anchor(
+        self, episode_reward_buffer, parse_parameters, step_number, search_std, anchor_parameters
+    ):
+        self.reset_llm_conversation()
+
+        system_prompt = self.llm_si_template.render(
+            {
+                "episode_reward_buffer_string": str(episode_reward_buffer),
+                "step_number": str(step_number),
+                "search_std": str(search_std),
+                "anchor_parameters": str(anchor_parameters)
+            }
+        )
+
+        self.add_llm_conversation(system_prompt, "user")
+        new_parameters_with_reasoning = self.query_llm()
+
+        print(system_prompt)
+
+        # self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        # self.add_llm_conversation(
+        #     self.llm_output_conversion_template.render(),
+        #     "user",
+        # )
+        # new_parameters = self.query_llm()
+        new_parameters_list = parse_parameters(new_parameters_with_reasoning)
+
+        return (
+            new_parameters_list,
+            "system:\n"
+            + system_prompt
+            + "\n\n\nLLM:\n"
+            + new_parameters_with_reasoning,
+        )
+
+
+    def llm_propose_parameters_num_optim_based_on_anchor_thread(
+        self, new_candidates, new_idx, episode_reward_buffer, parse_parameters, step_number, search_std, anchor_parameters
+    ):
+        self.reset_llm_conversation()
+
+        system_prompt = self.llm_si_template.render(
+            {
+                "episode_reward_buffer_string": str(episode_reward_buffer),
+                "step_number": str(step_number),
+                "search_std": str(search_std),
+                "anchor_parameters": str(anchor_parameters)
+            }
+        )
+
+        self.add_llm_conversation(system_prompt, "user")
+        new_parameters_with_reasoning = self.query_llm()
+
+        print(system_prompt)
+
+        # self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        # self.add_llm_conversation(
+        #     self.llm_output_conversion_template.render(),
+        #     "user",
+        # )
+        # new_parameters = self.query_llm()
+        new_parameters_list = parse_parameters(new_parameters_with_reasoning)
+        new_candidates[new_idx] = new_parameters_list
 
         return (
             new_parameters_list,

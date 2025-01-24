@@ -81,7 +81,11 @@ all_succ = []
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_take_2'
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_take_3'
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_adaptive_true_expected_r_delta_gemini_descent_reverse_take_1'
-root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_change_expected_r_take_4'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_change_expected_r_take_4'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_3'
+root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_4'
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
 for folder in all_folders:
