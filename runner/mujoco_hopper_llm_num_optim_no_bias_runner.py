@@ -150,5 +150,5 @@ def run_training_loop(
             except Exception as e:
                 print(f"{trial_idx + 1}th trial attempt failed with error in training: {e}")
                 continue
-        results = agent.evaluate_policy(world, curr_episode_dir)
-        print(f"Episode {episode} Evaluation Results: {results}")
+        # results = agent.evaluate_policy(world, curr_episode_dir)
+        # print(f"Episode {episode} Evaluation Results: {results}")

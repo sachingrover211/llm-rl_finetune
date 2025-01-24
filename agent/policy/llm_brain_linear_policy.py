@@ -18,7 +18,12 @@ class LLMBrain:
         self.llm_si_template = llm_si_template
         self.llm_output_conversion_template = llm_output_conversion_template
         self.llm_conversation = []
-        assert llm_model_name in ["o1-preview", "gpt-4o", "gemini-2.0-flash-exp", "gpt-4o-mini"]
+        assert llm_model_name in [
+            "o1-preview",
+            "gpt-4o",
+            "gemini-2.0-flash-exp",
+            "gpt-4o-mini",
+        ]
         self.llm_model_name = llm_model_name
         if "gemini" in llm_model_name:
             self.model_group = "gemini"
@@ -68,6 +73,44 @@ class LLMBrain:
                 self.add_llm_conversation(response, "model")
 
             return response
+
+    def query_llm_multiple_response(self, num_responses, temperature):
+        for attempt in range(5):
+            try:
+                if self.model_group == "openai":
+                    completion = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=self.llm_conversation,
+                        n=num_responses,
+                        temperature=temperature,
+                    )
+                    responses = [
+                        completion.choices[i].message.content
+                        for i in range(num_responses)
+                    ]
+                else:
+                    model = genai.GenerativeModel(model_name=self.llm_model_name)
+                    responses = model.generate_content(
+                        contents=self.llm_conversation,
+                        generation_config=genai.GenerationConfig(
+                            candidate_count=num_responses,
+                            temperature=temperature,
+                        ),
+                    )
+                    responses = [
+                        "\n".join([x.text for x in c.content.parts]) for c in responses
+                    ]
+
+            except Exception as e:
+                print(f"Error: {e}")
+                print("Retrying...")
+                if attempt == 4:
+                    raise Exception("Failed")
+                else:
+                    print("Waiting for 60 seconds before retrying...")
+                    time.sleep(60)
+
+            return responses
 
     def parse_parameters(self, parameters_string):
         new_parameters_list = []
@@ -181,10 +224,13 @@ class LLMBrain:
             + new_parameters_with_reasoning,
         )
 
-
-
     def llm_propose_parameters_num_optim_based_on_anchor(
-        self, episode_reward_buffer, parse_parameters, step_number, search_std, anchor_parameters
+        self,
+        episode_reward_buffer,
+        parse_parameters,
+        step_number,
+        search_std,
+        anchor_parameters,
     ):
         self.reset_llm_conversation()
 
@@ -193,7 +239,7 @@ class LLMBrain:
                 "episode_reward_buffer_string": str(episode_reward_buffer),
                 "step_number": str(step_number),
                 "search_std": str(search_std),
-                "anchor_parameters": str(anchor_parameters)
+                "anchor_parameters": str(anchor_parameters),
             }
         )
 
@@ -218,9 +264,15 @@ class LLMBrain:
             + new_parameters_with_reasoning,
         )
 
-
-    def llm_propose_parameters_num_optim_based_on_anchor_thread(
-        self, new_candidates, new_idx, episode_reward_buffer, parse_parameters, step_number, search_std, anchor_parameters
+    def llm_propose_multiple_parameters_num_optim_based_on_anchor(
+        self,
+        episode_reward_buffer,
+        parse_parameters,
+        step_number,
+        search_std,
+        anchor_parameters,
+        num_candidates,
+        temperature,
     ):
         self.reset_llm_conversation()
 
@@ -229,7 +281,48 @@ class LLMBrain:
                 "episode_reward_buffer_string": str(episode_reward_buffer),
                 "step_number": str(step_number),
                 "search_std": str(search_std),
-                "anchor_parameters": str(anchor_parameters)
+                "anchor_parameters": str(anchor_parameters),
+            }
+        )
+
+        # print(system_prompt)
+        self.add_llm_conversation(system_prompt, "user")
+        new_parameters_with_reasoning_list = self.query_llm_multiple_response(
+            num_candidates, temperature
+        )
+        # print(new_parameters_with_reasoning_list)
+
+        new_parameters_list = []
+        reasonings_list = []
+        for new_params in new_parameters_with_reasoning_list:
+            new_params_np = parse_parameters(new_params)
+            new_parameters_list.append(new_params_np)
+            reasonings_list.append(new_params)
+
+        return (
+            system_prompt,
+            new_parameters_list,
+            reasonings_list,
+        )
+
+    def llm_propose_parameters_num_optim_based_on_anchor_thread(
+        self,
+        new_candidates,
+        new_idx,
+        episode_reward_buffer,
+        parse_parameters,
+        step_number,
+        search_std,
+        anchor_parameters,
+    ):
+        self.reset_llm_conversation()
+
+        system_prompt = self.llm_si_template.render(
+            {
+                "episode_reward_buffer_string": str(episode_reward_buffer),
+                "step_number": str(step_number),
+                "search_std": str(search_std),
+                "anchor_parameters": str(anchor_parameters),
             }
         )
 

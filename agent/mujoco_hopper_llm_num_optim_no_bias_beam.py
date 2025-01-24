@@ -6,6 +6,7 @@ import numpy as np
 import re
 import heapq
 import threading
+import os
 
 
 class MujocoHopperLLMNumOptimBeamAgent:
@@ -22,6 +23,7 @@ class MujocoHopperLLMNumOptimBeamAgent:
         num_evaluation_episodes,
         beam_width=5,
         num_new_candidate=5,
+        temperature=1.0,
     ):
         self.policy = LinearPolicy(dim_actions=dim_action, dim_states=dim_state)
         self.replay_buffer = EpisodeRewardBufferNoBias(max_size=max_traj_count)
@@ -35,6 +37,7 @@ class MujocoHopperLLMNumOptimBeamAgent:
         self.beam_width = beam_width
         self.num_new_candidate = num_new_candidate
         heapq.heapify(self.candidates)
+        self.temperature = temperature
 
     def rollout_episode(self, world: MujocoHopperWorld, logging_file, record=True):
         state = world.reset()
@@ -129,6 +132,53 @@ class MujocoHopperLLMNumOptimBeamAgent:
             new_candidates.append(new_parameters)
         return new_candidates
 
+    def generate_multiple_new_candidates_llm(
+        self,
+        system_prompt_return,
+        new_candidates_return,
+        reasonings_list_return,
+        idx,
+        world,
+        replay_buffer_str,
+        parse_parameters,
+        step_number,
+        search_std,
+        candidate=None,
+        temperature=1.0,
+    ):
+
+        def candidate_to_str(candidate):
+            reward, params = candidate
+            params = np.array(params).reshape(-1)
+            l = ""
+            for i in range(33):
+                l += f"params[{i}]: {params[i]:.15g}; "
+            l += f"f(params): {reward:.2f}\n"
+            return l
+
+        if candidate is None:
+            reward = self.rollout_multiple_episodes(5, world, None, record=False)
+            reward = np.mean(reward)
+            candidate = (reward, self.policy.weight)
+
+        candidate_str = candidate_to_str(candidate)
+
+        system_prompt, new_parameters_list, reasonings_list = (
+            self.llm_brain.llm_propose_multiple_parameters_num_optim_based_on_anchor(
+                replay_buffer_str,
+                parse_parameters,
+                step_number,
+                search_std,
+                candidate_str,
+                self.num_new_candidate,
+                temperature,
+            )
+        )
+
+        system_prompt_return[idx] = system_prompt
+        new_candidates_return[idx] = new_parameters_list
+        reasonings_list_return[idx] = reasonings_list
+
     def generate_new_candidates_llm_thread(
         self,
         new_candidates_all,
@@ -179,12 +229,28 @@ class MujocoHopperLLMNumOptimBeamAgent:
         new_candidates_all[new_idx] = new_candidates
         return new_candidates
 
+    def log_down_beam_search(
+        self, logdir, system_prompts, new_candidates, reasonings_lists
+    ):
+
+        for idx in range(len(system_prompts)):
+            with open(f"{logdir}/beam_search_candidate_{idx}.txt", "w") as f:
+                f.write(f"System prompt: \n{system_prompts[idx]}\n\n\n")
+
+                for i in range(len(new_candidates[idx])):
+                    f.write(f"Reasoning {i}: \n{reasonings_lists[idx][i]}\n\n")
+                    f.write(f"New candidate {i}:\n")
+                    f.write(
+                        f"{[str(x) for x in new_candidates[idx][i].reshape(-1)]}\n\n\n"
+                    )
+                f.close()
+
     def train_policy(self, world: MujocoHopperWorld, logdir, search_std):
 
         def parse_parameters(input_text):
             # This regex looks for integers or floating-point numbers (including optional sign)
             s = input_text.split("\n")[0]
-            print("response:", s)
+            # print("response:", s)
             pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
             matches = pattern.findall(s)
 
@@ -192,7 +258,7 @@ class MujocoHopperLLMNumOptimBeamAgent:
             results = []
             for match in matches:
                 results.append(float(match[1]))
-            print(results)
+            # print(results)
             assert len(results) == 33
             return np.array(results).reshape((11, 3))
 
@@ -213,19 +279,25 @@ class MujocoHopperLLMNumOptimBeamAgent:
                 text += l
             return text
 
+        temperature = self.temperature
+
         # Generate new candidates for each candidate
         if len(self.candidates) == 0:
             result = self.rollout_multiple_episodes(5, world, None, record=False)
             result = np.mean(result)
             heapq.heappush(self.candidates, (result, self.policy.weight))
 
+        system_prompts = [0] * len(self.candidates)
         new_candidates = [0] * len(self.candidates)
+        reasonings_lists = [0] * len(self.candidates)
         threads = []
         for idx, candidate in enumerate(self.candidates):
             thread = threading.Thread(
-                target=self.generate_new_candidates_llm_thread,
+                target=self.generate_multiple_new_candidates_llm,
                 args=(
+                    system_prompts,
                     new_candidates,
+                    reasonings_lists,
                     idx,
                     world,
                     str_33d_examples(self.replay_buffer),
@@ -233,6 +305,7 @@ class MujocoHopperLLMNumOptimBeamAgent:
                     self.training_episodes,
                     search_std,
                     candidate,
+                    temperature,
                 ),
             )
             thread.start()
@@ -240,27 +313,17 @@ class MujocoHopperLLMNumOptimBeamAgent:
 
         for thread in threads:
             thread.join()
-        
-        print(new_candidates)
 
-            # new_candidates += self.generate_new_candidates_llm_thread(
-            #     new_candidates,
-            #     idx,
-            #     world,
-            #     str_33d_examples(self.replay_buffer),
-            #     parse_parameters,
-            #     self.training_episodes,
-            #     search_std,
-            #     candidate,
-            # )
+        self.log_down_beam_search(
+            logdir, system_prompts, new_candidates, reasonings_lists
+        )
+
+        # print(new_candidates)
+
         new_candidates_2 = []
         for new_candidates_1 in new_candidates:
             new_candidates_2 += new_candidates_1
         new_candidates = new_candidates_2
-        # for candidate in self.candidates:
-        #     new_candidates += self.generate_new_candidates_llm(candidate)
-        # if not new_candidates:
-        #     new_candidates += self.generate_new_candidates_llm(None)
 
         # Evaluate the new candidates, and keep the best ones
         for candidate in new_candidates:
@@ -279,49 +342,21 @@ class MujocoHopperLLMNumOptimBeamAgent:
         print(best_candidate[0])
         best_candidate = best_candidate[1]
         self.policy.update_policy(best_candidate)
-        self.rollout_episode(
-            world,
-            open(f"{logdir}/training_rollout_{self.training_episodes}.txt", "w"),
-            record=True,
-        )
 
-        # # Run the episode and collect the trajectory
-        # print(f"Rolling out episode {self.training_episodes}...")
-        # logging_filename = f"{logdir}/training_rollout.txt"
-        # logging_file = open(logging_filename, "w")
-        # results = []
-        # for idx in range(20):
-        #     if idx == 0:
-        #         result = self.rollout_episode(world, logging_file, record=False)
-        #     else:
-        #         result = self.rollout_episode(world, logging_file, record=False)
-        #     results.append(result)
-        # print(f"Results: {results}")
-        # result = np.mean(results)
-        # self.replay_buffer.add(self.policy.weight, result)
 
-        # # Update the policy using llm_brain, q_table and replay_buffer
-        # print("Updating the policy...")
-        # new_parameter_list, reasoning = self.llm_brain.llm_update_parameters_num_optim(
-        #     str_33d_examples(self.replay_buffer),
-        #     parse_parameters,
-        #     self.training_episodes,
-        #     search_std,
-        # )
+        # Run the episode and collect the trajectory
+        print(f"Rolling out episode {self.training_episodes}...")
+        logging_filename = f"{logdir}/training_rollout.txt"
+        logging_file = open(logging_filename, "w")
+        results = []
+        for idx in range(20):
+            result = self.rollout_episode(world, logging_file, record=False)
+            results.append(result)
+        print(f"Results: {results}")
+        result = np.mean(results)
+        print(f"Mean Results: {result}")
+        self.replay_buffer.add(self.policy.weight, result)
 
-        # print(self.policy.weight.shape)
-        # print(new_parameter_list.shape)
-        # self.policy.update_policy(new_parameter_list)
-        # print(self.policy.weight.shape)
-        # logging_q_filename = f"{logdir}/parameters.txt"
-        # logging_q_file = open(logging_q_filename, "w")
-        # logging_q_file.write(str(self.policy))
-        # logging_q_file.close()
-        # q_reasoning_filename = f"{logdir}/parameters_reasoning.txt"
-        # q_reasoning_file = open(q_reasoning_filename, "w")
-        # q_reasoning_file.write(reasoning)
-        # q_reasoning_file.close()
-        # print("Policy updated!")
 
         self.training_episodes += 1
 
