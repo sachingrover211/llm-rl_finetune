@@ -23,6 +23,8 @@ class LLMBrain:
             "gpt-4o",
             "gemini-2.0-flash-exp",
             "gpt-4o-mini",
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-8b",
         ]
         self.llm_model_name = llm_model_name
         if "gemini" in llm_model_name:
@@ -98,7 +100,8 @@ class LLMBrain:
                         ),
                     )
                     responses = [
-                        "\n".join([x.text for x in c.content.parts]) for c in responses
+                        "\n".join([x.text for x in c.content.parts])
+                        for c in responses.candidates
                     ]
 
             except Exception as e:

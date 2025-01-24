@@ -34,6 +34,7 @@ def run_training_loop(
     beam=False,
     beam_width=5,
     num_new_candidate=5,
+    temperature=1.0,
 ):
     assert task == "mujoco_hopper_llm_num_optim_no_bias"
 
@@ -61,7 +62,8 @@ def run_training_loop(
             llm_model_name,
             num_evaluation_episodes,
             beam_width=beam_width,
-            num_new_candidate=num_new_candidate
+            num_new_candidate=num_new_candidate,
+            temperature=temperature,
         )
 
     else:
