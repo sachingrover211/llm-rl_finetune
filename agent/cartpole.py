@@ -142,6 +142,7 @@ class ContinuousCartpoleAgent(CartpoleAgent):
 
     def initialize_policy(self, state, actions):
         self.policy = LinearPolicy(state, actions)
+        self.llm_brain.matrix_size = state + 1 # for the bias
 
 
     def train_policy(self, world, logdir = ""):
@@ -174,11 +175,21 @@ class ContinuousCartpoleAgent(CartpoleAgent):
                 self.policy, self.average_reward, None
             )
 
+        # logging request
+        request = [req[self.llm_brain.TEXT_KEY] for req in self.llm_brain.llm_conversation]
+        request = "\n#################\n".join(request)
+        logging_request_filename = f"{logdir}/request.txt"
+        with open(logging_request_filename, "w") as f:
+            f.write(request)
+
+        # logging updated_matrix value
         self.policy.update_policy(updated_matrix)
         logging_matrix_filename = f"{logdir}/matrix.txt"
         logging_matrix_file = open(logging_matrix_filename, "w")
         logging_matrix_file.write(str(self.policy))
         logging_matrix_file.close()
+
+        # logging the response from the llm
         self.matrix_reasoning_filename = f"{logdir}/matrix_with_reasoning.txt"
         self.matrix_reasoning_file = open(self.matrix_reasoning_filename, "w")
         self.matrix_reasoning_file.write(reasoning)

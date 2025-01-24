@@ -7,6 +7,7 @@ import re
 import time
 from jinja2 import Template
 import tiktoken
+from utils.llm_interface import get_client, query_llm
 
 
 class LLMBrain:
@@ -22,49 +23,50 @@ class LLMBrain:
         self.llm_output_conversion_template = llm_output_conversion_template
         self.client = OpenAI()
         self.llm_conversation = []
-        assert llm_model_name in ["o1-preview", "gpt-4o"]
+        assert llm_model_name in ["o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
         self.llm_model_name = llm_model_name
         self.is_first_query = True
         self.episode = 0
-        self.encoder = tiktoken.encoding_for_model(self.llm_model_name)
+        # encoder is from open ai API, and we use that to get an estimate of tokens
+        self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 30000
+        self.token_limit = 500000
+        self.matrix_size = 0
+        self.model_type = "openai"
+        self.TEXT_KEY = "content"
+        self.SYSTEM_ACCOUNT = "system"
+        if "gemini" in llm_model_name:
+            self.model_type = "gemini"
+            self.SYSTEM_ACCOUNT = "user"
+            self.TEXT_KEY = "parts"
+
 
     def reset_llm_conversation(self):
         self.llm_conversation = []
+        self.tokens = 0
+
 
     def add_llm_conversation(self, text, role):
-        self.llm_conversation.append({"role": role, "content": text})
+        message = {"role": role}
+        message[self.TEXT_KEY] = text
+        self.llm_conversation.append(message)
         self.tokens += self.get_token_count(text)
+
 
     def remove_llm_conversation(self, index):
         popped_message = self.llm_conversation.pop(index)
-        self.tokens -= self.get_token_count(popped_message["content"])
+        content = popped_message[self.TEXT_KEY]
+        self.tokens -= self.get_token_count(content)
+
 
     def query_llm(self):
         while self.tokens > self.token_limit:
             # keeping the system prompt and never removing that.
             self.remove_llm_conversation(1)
 
-        for attempt in range(5):
-            try:
-                completion = self.client.chat.completions.create(
-                    model=self.llm_model_name,
-                    messages=self.llm_conversation,
-                )
-                # add the response to self.llm_conversation
-                self.add_llm_conversation(
-                    completion.choices[0].message.content, "assistant"
-                )
-                return completion.choices[0].message.content
-            except Exception as e:
-                print(f"Error: {e}")
-                print("Retrying...")
-                if attempt == 4:
-                    raise Exception("Failed")
-                else:
-                    print("Waiting for 120 seconds before retrying...")
-                    time.sleep(120)
+        response = query_llm(self.client, self.llm_model_name, self.llm_conversation)
+        return response
+
 
     def parse_q_table(self, q_table_string):
         new_q_values_list = []
@@ -119,7 +121,7 @@ class LLMBrain:
 
         if self.is_first_query and repeated_template == self.llm_ui_template:
             system_prompt = self.llm_si_template.render()
-            self.add_llm_conversation(system_prompt, "system")
+            self.add_llm_conversation(system_prompt, self.SYSTEM_ACCOUNT)
             self.is_first_query = False
 
         if replay_buffer:
@@ -156,8 +158,8 @@ class LLMBrain:
 
         updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
-        if len(updated_matrix) == 0:
-            print("Could not parse matrix once, trying again")
+        if len(updated_matrix) != self.matrix_size:
+            print("Could not parse matrix once, trying again", self.matrix_size, len(updated_matrix), updated_matrix)
             self.add_llm_conversation(
                 self.llm_output_conversion_template.render(),
                 "user"
