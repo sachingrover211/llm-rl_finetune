@@ -83,18 +83,18 @@ def plot_hist(files, index):
 if __name__ == "__main__":
     # running code for making all traces in one plot
     names = [
-        "../logs/gemini/cartpole_0_100_episodes/experiment_0/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_1/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_2/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_3/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_4/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_5/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_6/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_7/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_8/results.csv",
-        "../logs/gemini/cartpole_0_100_episodes/experiment_9/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_0/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_1/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_2/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_3/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_4/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_5/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_6/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_7/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_8/results.csv",
+        "../logs/gemini/cartpole_0_100/experiment_9/results.csv",
     ]
-    logdir = "../logs/gemini/cartpole_0_100_episodes"
-    #plot_traces_from_csv(names, logdir, 500.0, False)
-    get_average_reward(names, logdir, 500.0)
+    logdir = "../logs/gemini/cartpole_0_100"
+    plot_traces_from_csv(names, logdir, 500.0, False)
+    #get_average_reward(names, logdir, 500.0)
     #plot_hist(names, -1)
