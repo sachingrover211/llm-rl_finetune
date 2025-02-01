@@ -22,22 +22,6 @@ class CartpoleWorld(BaseWorld):
             self.angle_bins = np.linspace(-0.2095, 0.2095, num_angle_bins)
 
 
-
-    def reset(self):
-        if self.render_mode in ["human", "rgb_array"]:
-            self.env = gym.make(
-                self.name,
-                render_mode = self.render_mode
-            )
-        else:
-            self.env = gym.make(self.name)
-
-        self.state, _ = self.env.reset()
-        self.total_reward = 0
-
-        return self.decode_state(self.state)
-
-
     def reset_with_video(self, folder, _name):
         self.env = gym.make(
             self.name,
@@ -87,10 +71,6 @@ class CartpoleWorld(BaseWorld):
         return self.decode_state(state), reward, done or truncated
 
 
-    def get_accu_reward(self):
-        return self.total_reward
-
-
     def start_video_recorder(self):
         self.env.start_video_recorder()
 
@@ -99,5 +79,3 @@ class CartpoleWorld(BaseWorld):
         self.env.close_video_recorder()
 
 
-    def close(self):
-        self.env.close()

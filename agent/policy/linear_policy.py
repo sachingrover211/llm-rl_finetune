@@ -5,7 +5,7 @@ from agent.policy.base_policy import Policy
 class LinearPolicy(Policy):
     def __init__(self, dim_states, dim_actions):
         super().__init__(dim_states, dim_actions)
-        self.dim_states =dim_states
+        self.dim_states = dim_states
         self.dim_actions = dim_actions
         self.weight = np.random.rand(self.dim_states, self.dim_actions)
         self.bias = np.random.rand(1, self.dim_actions)
@@ -51,3 +51,16 @@ class LinearPolicy(Policy):
             print("Updating policy error", e)
             self.weight = copy_weight
             self.bias = copy_bias
+
+
+class LinearContinuousActionPolicy(LinearPolicy):
+    def __init__(self, dim_states, dim_actions):
+        super().__init__(dim_states, dim_actions)
+        sigmoid = lambda x: 1 / (1+math.e^(-x))
+        self.sigmoid_v = np.vectorize(sigmoid)
+
+
+    def get_action(self, state):
+        actions = super().get_action(state)
+        return self.sigmoid_v(actions)
+

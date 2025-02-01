@@ -1,0 +1,8 @@
+Episode {{ episode_number }}:
+
+The policy is a linear policy, such that action(1x3) = sigmoid(np.matmul(state(1x11), weight(11x3)) + bias(1x3)). Following are the current parameters (36 = (11+1)*3) (weight concatenated with bias):
+{{ matrix_string }}
+
+Average reward received while evaluating this policy for 20 episodes is {{ reward }}.
+
+Based on the reward values, please provide a new weight matrix that you think will help the agent achieve its goal. Please generate the new weight matrix in the same format as the previous weight matrix (including the bias value in the last row).
