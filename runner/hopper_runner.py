@@ -1,5 +1,5 @@
-from world.cartpole import CartpoleWorld
-from agent.cartpole import CartpoleAgent, ContinuousCartpoleAgent
+from world.hopper import HopperWorld
+from agent.hopper import HopperAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 import numpy as np
@@ -13,13 +13,9 @@ def run_training_loop(
     num_episodes,
     gym_env_name,
     render_mode,
-    continuous,
-    num_position_bins,
-    num_theta_bins,
     logdir,
     actions,
     states,
-    max_traj_count,
     max_traj_length,
     template_dir,
     llm_si_template_name,
@@ -31,7 +27,7 @@ def run_training_loop(
     use_replay_buffer,
     reset_llm_conversation,
 ):
-    assert task == "cartpole"
+    assert task == "hopper"
 
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
     llm_si_template = jinja2_env.get_template(llm_si_template_name)
@@ -47,47 +43,25 @@ def run_training_loop(
         print(f"################# Experiment Started {i}")
         logdir = f"{root_folder}/experiment_{i}"
 
-        world = CartpoleWorld(
+        world = HopperWorld(
             render_mode,
-            continuous,
-            num_position_bins,
-            num_theta_bins,
         )
 
-        if continuous:
-            agent = ContinuousCartpoleAgent(
-                logdir,
-                actions,
-                states,
-                max_traj_count,
-                max_traj_length,
-                llm_si_template,
-                llm_ui_template,
-                llm_output_conversion_template,
-                llm_model_name,
-                num_evaluation_episodes,
-                record_video,
-                use_replay_buffer,
-                reset_llm_conversation
-            )
-        else:
-            agent = CartpoleAgent(
-                logdir,
-                actions,
-                states,
-                num_position_bins,
-                num_theta_bins,
-                max_traj_count,
-                max_traj_length,
-                llm_si_template,
-                llm_ui_template,
-                llm_output_conversion_template,
-                llm_model_name,
-                num_evaluation_episodes,
-                record_video,
-                use_replay_buffer,
-                reset_llm_conversation
-            )
+        agent = HopperAgent(
+            logdir,
+            actions,
+            states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_ui_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+            record_video,
+            use_replay_buffer,
+            reset_llm_conversation
+        )
 
         agent.initialize_policy(states, actions)
         curr_episode_dir = f"{logdir}/episode_initial"
@@ -118,10 +92,13 @@ def run_training_loop(
             agent.average_reward = avg[-1]
             print(results)
             print(f"Episode {episode} Evaluation Results: {avg[-1]}, {std[-1]}")
+            if episode > 0 and episode % print_episode == 0:
+                record_results(avg, std, logdir, max_limit)
 
         print("Average", avg)
         print("Standard deviation", std)
-
-        plot_reward("Cartpole Trajectory No Context", avg, std, logdir, 500)
-        write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
         print(f"################# Experiment End {i}")
+
+def record_results(avg, std, logdir, max_limit = 2200):
+        plot_reward("Hopper Trajectory No Context", avg, std, logdir, max_limit)
+        write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
