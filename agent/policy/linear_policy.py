@@ -7,13 +7,11 @@ class LinearPolicy(Policy):
         super().__init__(dim_states, dim_actions)
         self.dim_states = dim_states
         self.dim_actions = dim_actions
-        #self.weight = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
-        #self.bias = [[0.0, 0.0]]
-        self.weight = np.random.rand(self.dim_states, self.dim_actions)
-        self.bias = np.random.rand(1, self.dim_actions)
 
 
     def initialize_policy(self):
+        #self.weight = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+        #self.bias = [[0.0, 0.0]]
         self.weight = np.random.rand(self.dim_states, self.dim_actions)
         self.bias = np.random.rand(1, self.dim_actions)
 
@@ -58,11 +56,11 @@ class LinearPolicy(Policy):
 class LinearContinuousActionPolicy(LinearPolicy):
     def __init__(self, dim_states, dim_actions):
         super().__init__(dim_states, dim_actions)
-        sigmoid = lambda x: 1 / (1+math.e^(-x))
+        sigmoid = lambda x: 1 / (1+np.exp(-x))
         self.sigmoid_v = np.vectorize(sigmoid)
 
 
     def get_action(self, state):
         actions = super().get_action(state)
-        return self.sigmoid_v(actions)
+        return np.squeeze(self.sigmoid_v(actions))
 

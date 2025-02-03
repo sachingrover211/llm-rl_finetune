@@ -41,6 +41,15 @@ class LLMBrain:
             self.TEXT_KEY = "parts"
 
 
+    def create_regex(self):
+        single_float = "[0-9 .-]+,"
+        reg = ""
+        for _ in range(self.matrix_size[1]):
+            reg += single_float
+
+        self.reg = reg[:-1]
+
+
     def reset_llm_conversation(self):
         self.llm_conversation = []
         self.tokens = 0
@@ -159,7 +168,7 @@ class LLMBrain:
         updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
         trial = 0
-        while len(updated_matrix) != self.matrix_size:
+        while trial < 3 and  len(updated_matrix) != self.matrix_size[0]:
             print("Could not parse matrix once, trying again", trial, updated_matrix)
             self.add_llm_conversation(
                 self.llm_output_conversion_template.render(),
@@ -182,20 +191,21 @@ class LLMBrain:
         # for greater than two actions we will have to re-write this
         # we can't do this individually as some numbers in the conversation
         # will also get parsed.
-        reg = "[0-9 .-]+,[0-9 .-]+"
+        # reg = "[0-9 .-]+,[0-9 .-]+"
+        # constructed in a different function now
 
         # Update the Q-table based on the new Q-table
         for row in parameters_string.split("\n"):
             if row.strip().strip(","):
                 try:
-                    temp = re.findall(reg, row)
+                    temp = re.findall(self.reg, row)
                     if len(temp) == 0:
                         continue
                     for t in temp:
                         parameters_row = [float(x.strip().strip(',')) for x in t.strip().split(",")]
                         new_parameters_list.append(parameters_row)
-                    if len(new_parameters_list) == 5:
-                        break
+                    # if len(new_parameters_list) == 5:
+                    #    break
                 except Exception as e:
                     print(f"Error while parsing {e}")
 

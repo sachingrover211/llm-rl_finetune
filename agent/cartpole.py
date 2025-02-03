@@ -142,6 +142,7 @@ class ContinuousCartpoleAgent(CartpoleAgent):
 
     def initialize_policy(self, state, actions):
         self.policy = LinearPolicy(state, actions)
+        self.policy.initialize_policy()
         self.llm_brain.matrix_size = state + 1 # for the bias
 
 

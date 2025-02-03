@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from runner import mountain_car_runner, pendulum_runner, blackjack_runner, cartpole_runner, frozen_lake_runner
+from runner import mountain_car_runner, pendulum_runner, blackjack_runner, cartpole_runner, frozen_lake_runner, hopper_runner
 
 
 def main():
@@ -26,8 +26,11 @@ def main():
         cartpole_runner.run_training_loop(**config)
     elif config["task"] == "grid_world":
         frozen_lake_runner.run_training_loop(**config)
+    elif config["task"] == "hopper":
+        hopper_runner.run_training_loop(**config)
     else:
-        raise ValueError(f"Task {config['task']} not recognized.")
+        msg = f"Task {config['task']} not recognized."
+        raise ValueError(msg)
 
 
 if __name__ == "__main__":

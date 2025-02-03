@@ -10,6 +10,7 @@ class HopperAgent:
         logdir,
         actions,
         states,
+        max_traj_count,
         max_traj_length,
         llm_si_template,
         llm_ui_template,
@@ -43,14 +44,16 @@ class HopperAgent:
 
     def initialize_policy(self, states, actions):
         self.policy = LinearContinuousActionPolicy(dim_actions=actions, dim_states=states)
-        self.llm_brain.matrix_size = state + 1 # for the bias
+        self.policy.initialize_policy()
+        self.llm_brain.matrix_size = (states + 1, actions) # +1 for the bias
+        self.llm_brain.create_regex()
 
 
     def rollout_episode(self, world, logdir, logging_file, record_video = False):
         if record_video:
             world.render_mode = "rgb_array"
 
-        world.reset()
+        state = world.reset()
 
         if self.use_replay_buffer:
             self.replay_buffer.start_new_trajectory()
@@ -58,8 +61,8 @@ class HopperAgent:
         logging_file.write(f"state | action | reward\n")
         done = False
         while not done:
-            action = self.policy.get_action(state).argmax()
-            next_state, reward, done = world.step(action, record_video)
+            action = self.policy.get_action(state)
+            next_state, reward, done = world.step(action)
             if self.use_replay_buffer:
                 self.replay_buffer.add_step(state, action, reward)
             logging_file.write(f"{state} | {action} | {reward}\n")

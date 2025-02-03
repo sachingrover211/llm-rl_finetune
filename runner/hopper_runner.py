@@ -16,6 +16,7 @@ def run_training_loop(
     logdir,
     actions,
     states,
+    max_traj_count,
     max_traj_length,
     template_dir,
     llm_si_template_name,
@@ -26,6 +27,8 @@ def run_training_loop(
     record_video,
     use_replay_buffer,
     reset_llm_conversation,
+    print_episode,
+    max_limit,
 ):
     assert task == "hopper"
 
@@ -98,7 +101,8 @@ def run_training_loop(
         print("Average", avg)
         print("Standard deviation", std)
         print(f"################# Experiment End {i}")
+        record_results(avg, std, logdir, max_limit)
 
 def record_results(avg, std, logdir, max_limit = 2200):
-        plot_reward("Hopper Trajectory No Context", avg, std, logdir, max_limit)
-        write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
+    plot_reward("Hopper Trajectory No Context", avg, std, logdir, max_limit)
+    write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])

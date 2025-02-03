@@ -15,7 +15,7 @@ class BaseWorld:
         else:
             self.env = gym.make(self.name)
 
-        self.state, _ self.env.reset()
+        self.state, _ = self.env.reset()
         self.total_reward = 0
 
         return self.decode_state(self.state)
@@ -44,7 +44,7 @@ class BaseWorld:
 
     def step(self, action):
         state, reward, done, truncated, _ = self.env.step(action)
-        self.total_Reward += reward
+        self.total_reward += reward
 
         return self.decode_state(state), reward, done or truncated
 
