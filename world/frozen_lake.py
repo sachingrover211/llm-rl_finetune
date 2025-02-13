@@ -16,14 +16,21 @@ class FrozenLakeWorld(BaseWorld):
         super().__init__("FrozenLake-v1")
         self.grid_size = _size
         self.grid = generate_random_map(self.grid_size)
-        self.env = gym.make(
-            self.name,
-            desc = self.grid
-        )
-
+        self.render_mode = _render_mode
 
 
     def reset(self):
+        if self.render_mode in ["human", "rgb_array"]:
+            self.env = gym.make(
+                self.name,
+                desc = self.grid,
+                render_mode = self.render_mode
+            )
+        else:
+            self.env = gym.make(
+                self.name,
+                desc = self.grid
+            )
         self.state, _ = self.env.reset()
 
         return self.decode_state(self.state)
@@ -37,7 +44,7 @@ class FrozenLakeWorld(BaseWorld):
 
 
     def step(self, action):
-        action = FrozenLakeWorld(action)
-        state, reward, done, _, _ = self.env.step(action)
+        action = FrozenLakeWorld.ACTIONS[action]
+        state, reward, done, truncated, _ = self.env.step(action)
 
-        return self.decode_state(state), reward, done
+        return self.decode_state(state), reward, done, truncated

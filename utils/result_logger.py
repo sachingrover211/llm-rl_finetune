@@ -24,6 +24,28 @@ def plot_reward(title, reward, sd, logdir, max_limit, index = 0, do_clear_plot =
 
     is_first = False
 
+def plot_without_deviation(title, ylabel, avg, logdir, max_limit, index = 0, do_clear_plot = True):
+    episodes = list(range(len(reward)))
+    global is_first
+
+    if do_clear_plot or is_first:
+        plt.figure(figsize=(10, 6))
+        plt.xlabel('Episode')
+        plt.ylabel(ylabel)
+        plt.ylim(0, max_limit*1.01)
+        plt.title(title)
+        plt.grid(True)
+
+    plt.plot(episodes, avg, label=f"Experiment {index}")
+    plt.legent(loc="lower right")
+
+    if do_clear_plot:
+        plt.savefix(f"{logdir}/plot_{title}_{index}.png")
+        plt.clf()
+
+    is_first = False
+
+
 def plot_traces_from_csv(file_names, logdir, max_limit, is_new_plots = True):
     title = str(logdir.split("/")[-1])
     for ix, name in enumerate(file_names):
