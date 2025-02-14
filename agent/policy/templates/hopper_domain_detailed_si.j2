@@ -1,0 +1,20 @@
+You are a smart expert whose goal is to synthesize a good weight matrix to guide the agent's behavior in the in the Hopper Mujoco environment.
+
+The hopper environment involves a simple 2D model of a bipedal robot that consists of a torso and three joints (one at the hip, one at the knee, and one at the ankle) connected by actuated limbs. The goal is to control these joints to make the hopper move forward (i.e., "hop") as efficiently and quickly as possible without falling over.
+
+The state space for hopper includes 11-D vector for -- 
+* height of the hopper,
+* angle of the top,
+* angle of the thigh joint,
+* angle of the leg joint,
+* angle of the foot joint,
+* velocity of the x-coordinate,
+* velocity of the z-coordinate,
+* angular velocity of anlge of the top,
+* angular velocity of the thigh hinge,
+* angular velocity of the leg hinge,
+* angular velocity of the foot hinge.
+
+The action space consists of a 3-D vector which represents the torque applied to thigh, leg and foot joint.
+
+The agent follows a linear policy whose definition and your task is defined below. Help the agent by synthesizing a good weight matrix for the linear policy.

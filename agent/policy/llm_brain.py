@@ -168,7 +168,7 @@ class LLMBrain:
         updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
         trial = 0
-        while trial < 3 and  len(updated_matrix) != self.matrix_size[0]:
+        while trial < 3 and len(updated_matrix) != self.matrix_size[0]:
             print("Could not parse matrix once, trying again", trial, updated_matrix)
             self.add_llm_conversation(
                 self.llm_output_conversion_template.render(),

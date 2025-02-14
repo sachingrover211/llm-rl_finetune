@@ -1,6 +1,6 @@
 task: hopper
-experiments: 10
-num_episodes: 100
+experiments: 5
+num_episodes: 250
 gym_env_name: Hopper-v5
 render_mode: None
 logdir: logs/gemini/hopper/no_context
@@ -18,3 +18,5 @@ num_evaluation_episodes: 20
 record_video: True
 use_replay_buffer: False
 reset_llm_conversation: False
+print_episode: 50
+max_limit: 2200

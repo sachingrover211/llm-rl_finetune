@@ -4,7 +4,7 @@ import numpy as np
 
 is_first = True
 
-def plot_reward(title, reward, sd, logdir, max_limit, index = 0, do_clear_plot = True):
+def plot_reward(title, reward, sd, logdir, max_limit, index = 0, do_clear_plot = True, show_legend = True):
     episodes = list(range(len(reward)))
     global is_first
 
@@ -17,7 +17,8 @@ def plot_reward(title, reward, sd, logdir, max_limit, index = 0, do_clear_plot =
         plt.grid(True)
     plt.plot(episodes, reward, label=f'Experiment {index}')
     plt.fill_between(episodes, np.array(reward) - np.array(sd), np.array(reward) + np.array(sd), alpha=0.2)
-    plt.legend(loc="lower right")
+    if show_legend:
+        plt.legend(loc="lower right")
     if do_clear_plot:
         plt.savefig(f"{logdir}/plot{index}.png")
         plt.clf()
@@ -47,12 +48,13 @@ def plot_without_deviation(title, ylabel, avg, logdir, max_limit, index = 0, do_
 
 
 def plot_traces_from_csv(file_names, logdir, max_limit, is_new_plots = True):
-    title = str(logdir.split("/")[-1])
+    #title = str(logdir.split("/")[-1])
+    title = "1000 episodes without in context examples"
     for ix, name in enumerate(file_names):
         print(name)
         df = pd.read_csv(name)
         #if df["Average reward"].iloc[-1] > 450.0:
-        plot_reward(title, df["Average reward"], df["Standard deviation"], logdir, max_limit, ix, is_new_plots)
+        plot_reward(title, df["Average reward"], df["Standard deviation"], logdir, max_limit, ix, is_new_plots, show_legend = False)
 
     plt.savefig(f"{logdir}/plot.png")
     plt.close()
@@ -69,7 +71,7 @@ def get_average_reward(file_names, logdir, max_limits, index = 0):
     df['std'] = df.std(axis=1)
 
     title = f"Average reward over {ix + 1} experiments"
-    plot_reward(title, df['mean'], df['std'], logdir, max_limits, index)
+    plot_reward(title, df['mean'], df['std'], logdir, max_limits, index, show_legend = False)
     print("Last Episode average reward -- ", df['mean'].iloc[-1])
 
 
@@ -104,19 +106,14 @@ def plot_hist(files, index):
 
 if __name__ == "__main__":
     # running code for making all traces in one plot
-    names = [
-        "../logs/gemini/cartpole_0_100/experiment_0/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_1/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_2/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_3/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_4/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_5/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_6/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_7/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_8/results.csv",
-        "../logs/gemini/cartpole_0_100/experiment_9/results.csv",
+    names = ["../logs/gemini/hopper/no_context_1000/experiment_0/results.csv",
+    #    "../logs/gemini/hopper/no_context/experiment_0/results.csv",
+    #    "../logs/gemini/hopper/no_context/experiment_1/results.csv",
+    #    "../logs/gemini/hopper/no_context/experiment_2/results.csv",
+    #    "../logs/gemini/hopper/no_context/experiment_3/results.csv",
+    #    "../logs/gemini/hopper/no_context/experiment_4/results.csv",
     ]
-    logdir = "../logs/gemini/cartpole_0_100"
-    plot_traces_from_csv(names, logdir, 500.0, False)
-    #get_average_reward(names, logdir, 500.0)
+    logdir = "../logs/gemini/hopper/no_context_1000"
+    plot_traces_from_csv(names, logdir, 60.0, False)
+    #get_average_reward(names, logdir, 60.0)
     #plot_hist(names, -1)
