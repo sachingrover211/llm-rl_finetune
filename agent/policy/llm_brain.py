@@ -23,7 +23,7 @@ class LLMBrain:
         self.llm_output_conversion_template = llm_output_conversion_template
         self.client = OpenAI()
         self.llm_conversation = []
-        assert llm_model_name in ["o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
+        assert llm_model_name in ["o3-mini-2025-01-31", "o3-mini", "o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
         self.llm_model_name = llm_model_name
         self.is_first_query = True
         self.episode = 0
@@ -84,42 +84,52 @@ class LLMBrain:
         for row in q_table_string.split("\n"):
             if row.strip():
                 row = row.split("|")
-                if len(row) == 4:
+                #if len(row) == 4:
+                if len(row) == 3:
                     try:
-                        position, velocity, action, q_value = row
-                        position = int(position.strip())
-                        velocity = int(velocity.strip())
+                        #position, velocity, action, q_value = row
+                        state, action, q_value = row
+                        #position = int(position.strip())
+                        #velocity = int(velocity.strip())
+                        state = int(state.strip())
                         action = int(action.strip())
                         q_value = float(q_value.strip())
                         new_q_values_list.append(
-                            ((position, velocity), (action,), q_value)
+                            ((state,), (action,), q_value)
                         )
                     except:
                         pass
 
         return new_q_values_list
 
-    def llm_update_q_table(self, q_table, replay_buffer):
+    def llm_update_q_table(self, q_table, replay_buffer, params = None):
         self.reset_llm_conversation()
 
-        system_prompt = self.llm_si_template.render(
-            {"replay_buffer_string": str(replay_buffer), "q_table_string": str(q_table)}
-        )
+        system_prompt = self.llm_si_template.render({
+            "map": str(params["map"]),
+            "replay_buffer_string": str(replay_buffer),
+            "q_table_string": str(q_table),
+            "average_cost": params["cost"],
+            "count": params["count"],
+        })
 
         self.add_llm_conversation(system_prompt, "user")
         new_q_table_with_reasoning = self.query_llm()
-
-        self.add_llm_conversation(new_q_table_with_reasoning, "assistant")
-        self.add_llm_conversation(
-            self.llm_output_conversion_template.render(),
-            "user",
-        )
-        new_q_table = self.query_llm()
-
-        # print(f"New Q-table: {new_q_table}")
-
         new_q_table_list = self.parse_q_table(new_q_table)
 
+        trial = 0
+        while trial < 3 and len(new_q_table_list) != self.q_dim[0]*self.q_dim[1]:
+            self.add_llm_conversation(new_q_table_with_reasoning, "assistant")
+            self.add_llm_conversation(
+                self.llm_output_conversion_template.render(),
+                "user",
+            )
+            new_q_table = self.query_llm()
+            trial += 1
+
+            new_q_table_list = self.parse_q_table(new_q_table)
+
+        # print(f"New Q-table: {new_q_table}")
         return new_q_table_list, new_q_table_with_reasoning
 
 

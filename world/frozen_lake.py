@@ -1,5 +1,6 @@
 import gymnasium as gym
 from gymnasium.envs.toy_text.frozen_lake import generate_random_map
+import matplotlib.pyplot as plt
 
 from world.base_world import BaseWorld
 
@@ -48,3 +49,17 @@ class FrozenLakeWorld(BaseWorld):
         state, reward, done, truncated, _ = self.env.step(action)
 
         return self.decode_state(state), reward, done, truncated
+
+
+    def save_domain(self, logdir, index = 0):
+        _env = gym.make(
+            self.name,
+            desc = self.grid,
+            render_mode = "rgb_array"
+        )
+        _, _ = _env.reset()
+        img = env.render()
+        plt.imshow(img)
+        plt.savefig(f"{logdir}/frozen_lake_{index}.png")
+        _env.close()
+

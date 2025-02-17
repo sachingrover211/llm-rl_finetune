@@ -42,8 +42,10 @@ class FrozenLakeAgent:
 
 
     def initialize_policy(self, grid_size, actions):
-        self.policy = QTable(actions=actions, states=list(range(grid_size*grid_size)))
+        state_dim = grid_size*grid_size
+        self.policy = QTable(actions=actions, states=list(range(state_dim)))
         self.training_episodes = 0
+        self.llm_brain.q_dim = (state_dim, len(actions[0]))
 
 
     def rollout_episode(self, world, logdir, logging_file):
