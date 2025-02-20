@@ -12,13 +12,13 @@ class FrozenLakeAgent:
         max_traj_count,
         max_traj_length,
         llm_si_template,
-        llm_ui_template,
         llm_output_conversion_template,
         llm_model_name,
         num_evaluation_episodes,
         record_video = False,
         use_replay_buffer = True,
         reset_llm_conversations = False,
+        llm_ui_template = "",
     ):
         self.replay_buffer = None
         if use_replay_buffer:
@@ -27,7 +27,7 @@ class FrozenLakeAgent:
             )
 
         self.llm_brain = LLMBrain(
-            llm_si_template, llm_output_conversation_template, llm_model_name, llm_ui_template
+            llm_si_template, llm_output_conversion_template, llm_model_name, llm_ui_template
         )
         self.llm_brain.reset_llm_conversation()
 
@@ -41,9 +41,13 @@ class FrozenLakeAgent:
         self.reset_llm_conversations = reset_llm_conversations
 
 
-    def initialize_policy(self, grid_size, actions):
+    def initialize_policy(self, world, grid_size, actions):
         state_dim = grid_size*grid_size
-        self.policy = QTable(actions=actions, states=list(range(state_dim)))
+        temp = list(range(state_dim))
+        states = list()
+        for state in temp:
+            states.append(world.decode_state(state))
+        self.policy = QTable(actions=actions, states=[states])
         self.training_episodes = 0
         self.llm_brain.q_dim = (state_dim, len(actions[0]))
 
@@ -59,19 +63,19 @@ class FrozenLakeAgent:
         truncated = False
 
         while not (done or truncated):
-            action = self.policy.get_Action(state)
+            action = self.policy.get_action(state)
             next_state, reward, done, truncated = world.step(action)
             if self.use_replay_buffer:
-                self.repla_buffer.add_step(state, action, reward)
+                self.replay_buffer.add_step(state, action, reward)
 
             logging_file.write(f"{state} | {action} | {reward}\n")
             state = next_state
 
         world.close()
-        return done, world.get_accu_reward()
+        return done, world.get_accu_reward(), world.get_total_steps()
 
 
-    def train_policy(self, world, logdir):
+    def train_policy(self, world, logdir, cost, completion_count):
         print(f"Rolling out episode {self.training_episodes}...")
         logging_filename = f"{logdir}/training_rollout.txt"
         logging_file = open(logging_filename, "w")
@@ -81,8 +85,18 @@ class FrozenLakeAgent:
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
+        params = dict()
+        params["map"] = "\n".join(world.grid)
+        params["cost"] = cost
+        params["count"] = completion_count
+
+        replay_buffer_string = None
+        if self.use_replay_buffer:
+            index, samples = self.replay_buffer.sample_contiguous(self.replay_table_size)
+            replay_buffer_string = self.replay_buffer.print_trajectory(index, samples)
+
         new_q_values_list, reasoning = self.llm_brain.llm_update_q_table(
-            self.policy, self.replay_buffer
+            self.policy, replay_buffer_string, params
         )
 
         self.policy.update_policy(new_q_values_list)
@@ -116,9 +130,9 @@ class FrozenLakeAgent:
         for idx in range(self.num_evaluation_episodes):
             logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
             logging_file = open(logging_filename, "w")
-            done, result = self.rollout_episode(world, logdir, logging_file)
-            results.append(result)
-            if done:
+            done, reward, cost = self.rollout_episode(world, logdir, logging_file)
+            results.append(cost)
+            if done and reward > 0:
                 completed_instances += 1
 
             logging_file.close()

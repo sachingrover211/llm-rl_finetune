@@ -23,6 +23,7 @@ class LLMBrain:
         self.llm_output_conversion_template = llm_output_conversion_template
         self.client = OpenAI()
         self.llm_conversation = []
+        print(llm_model_name)
         assert llm_model_name in ["o3-mini-2025-01-31", "o3-mini", "o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
         self.llm_model_name = llm_model_name
         self.is_first_query = True
@@ -115,7 +116,7 @@ class LLMBrain:
 
         self.add_llm_conversation(system_prompt, "user")
         new_q_table_with_reasoning = self.query_llm()
-        new_q_table_list = self.parse_q_table(new_q_table)
+        new_q_table_list = self.parse_q_table(new_q_table_with_reasoning)
 
         trial = 0
         while trial < 3 and len(new_q_table_list) != self.q_dim[0]*self.q_dim[1]:

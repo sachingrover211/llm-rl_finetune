@@ -25,6 +25,7 @@ class QTable(Policy):
             raise Exception("Q Table is too large to handle")
         
         self.initialize_policy()
+        print(f"Q Table: {str(self)}")
 
 
     def _calculate_q_table_length(self, states, actions):
@@ -50,9 +51,9 @@ class QTable(Policy):
 
         self.mapping = dict()
         for state in itertools.product(*self.states):
-            self.mapping[state] = dict()
+            self.mapping[state[0]] = dict()
             for action in itertools.product(*self.actions):
-                self.mapping[state][action] = random.random()
+                self.mapping[state[0]][action[0]] = random.random()
 
 
     def get_action(self, state):

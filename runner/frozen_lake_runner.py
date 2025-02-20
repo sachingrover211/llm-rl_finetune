@@ -24,7 +24,7 @@ def run_training_loop(
     num_evaluation_episodes,
     record_video,
     use_replay_buffer,
-    reset_llm_conversations,
+    reset_llm_conversation,
 ):
     assert task == "grid_world"
 
@@ -35,14 +35,15 @@ def run_training_loop(
     )
 
     root_folder = logdir
+    max_limit = 100
     for i in range(experiments):
         print(f"################# Experiment Started {i}")
         logdir = f"{root_folder}/experiment_{i}"
         world = FrozenLakeWorld(
-            gym_env_name,
             render_mode,
             grid_size,
         )
+        os.makedirs(logdir, exist_ok=True)
         # save image of the grid world
         world.save_domain(logdir, i)
         agent = FrozenLakeAgent(
@@ -57,28 +58,36 @@ def run_training_loop(
             num_evaluation_episodes,
             record_video,
             use_replay_buffer,
-            reset_llm_conversations,
+            reset_llm_conversation,
         )
-        agent.initialize_policy(grid_size, actions)
+        agent.initialize_policy(world, grid_size, actions)
+        curr_episode_dir = f"{logdir}/episode_initial"
+        os.makedirs(curr_episode_dir, exist_ok=True)
+        result, ci = agent.evaluate_policy(world, curr_episode_dir)
 
         avg = list()
         std = list()
         completed_iterations = list()
+        avg_cost = np.average(result)
+        avg.append(avg_cost)
+        std.append(np.std(result))
+        completed_iterations.append(ci)
         for episode in range(num_episodes):
             print(f"Episode: {episode}")
             # create log dir
             curr_episode_dir = f"{logdir}/episode_{episode}"
             print(f"Creating log directory: {curr_episode_dir}")
             os.makedirs(curr_episode_dir, exist_ok=True)
-            agent.train_policy(world, curr_episode_dir)
+            agent.train_policy(world, curr_episode_dir, avg_cost, ci)
             # print(f"New Q Table: {agent.q_table}")
             result, ci = agent.evaluate_policy(world, curr_episode_dir)
-            print(f"Episode {episode} Evaluation Results: {results}")
+            print(f"Episode {episode} Evaluation Results: {result}")
             print(f"Episode {episode} Completed Rounds: {ci}")
-            avg.append(np.average(result))
+            avg_cost = np.average(result)
+            avg.append(avg_cost)
             std.append(np.std(result))
             completed_iterations.append(ci)
 
         plot_reward(f"Frozen Lake Grid {grid_size}by{grid_size} average cost", avg, std, logdir, 100)
         write_to_file(logdir, ["Average cost", "Standard deviation", "Completed rounds"], [avg, std, completed_iterations])
-        plot_without_deviation(f"Frozen Lake Grid {grid_size}x{grid_size} average completions out of 20")
+        plot_without_deviation(f"Frozen Lake Grid {grid_size}x{grid_size} average completions out of 20", "# of Completions", ci, logdir, 20.0)

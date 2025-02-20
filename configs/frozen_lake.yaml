@@ -4,7 +4,7 @@ num_episodes: 20
 gym_env_name: FrozenLake-v1
 render_mode: None
 logdir: logs/openai/frozen_lake_4x4
-actions: [[0, 1, 2, 3]]
+actions: [["left", "down", "right", "up"]]
 grid_size: 4
 max_traj_count: 20
 max_traj_length: 100

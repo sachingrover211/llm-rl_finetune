@@ -34,6 +34,8 @@ class FrozenLakeWorld(BaseWorld):
             )
         self.state, _ = self.env.reset()
 
+        self.total_reward = 0
+        self.total_cost = 0
         return self.decode_state(self.state)
 
 
@@ -44,11 +46,24 @@ class FrozenLakeWorld(BaseWorld):
         return (row, col)
 
 
+    def encode_state(self, row, col):
+        state = row * self.grid_size + col
+
+        return state
+
+
     def step(self, action):
         action = FrozenLakeWorld.ACTIONS[action]
         state, reward, done, truncated, _ = self.env.step(action)
 
+        self.total_reward += reward
+        self.total_cost += 1
+
         return self.decode_state(state), reward, done, truncated
+
+
+    def get_total_steps(self):
+        return self.total_cost
 
 
     def save_domain(self, logdir, index = 0):
@@ -58,7 +73,7 @@ class FrozenLakeWorld(BaseWorld):
             render_mode = "rgb_array"
         )
         _, _ = _env.reset()
-        img = env.render()
+        img = _env.render()
         plt.imshow(img)
         plt.savefig(f"{logdir}/frozen_lake_{index}.png")
         _env.close()

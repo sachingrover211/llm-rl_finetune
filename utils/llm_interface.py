@@ -16,23 +16,20 @@ def get_client(model_type, model_name):
 def query_llm(client, model_name, conversation):
     for attempt in range(5):
         try:
-            if model_name == "openai":
-                completion = client.chat.completions.create(
-                    model=model_name,
-                    messages=conversation
-                )
-                return completion.choices[0].message.content
-
-            elif "gemini" in model_name:
+            if "gemini" in model_name:
                 client = genai.GenerativeModel(model_name=model_name)
                 session = client.start_chat(history = conversation[:-1])
                 response = session.send_message(
                     conversation[-1]["parts"]
                 )
                 return response.text
-
             else:
-                print("Incorrect model name")
+                completion = client.chat.completions.create(
+                    model=model_name,
+                    messages=conversation
+                )
+                return completion.choices[0].message.content
+
         except Exception as e:
             print(f"Error: {e}")
             print("Retrying...")

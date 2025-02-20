@@ -48,7 +48,9 @@ class TrajectoryBuffer:
 
     def print_row(self, index):
         step, state, action, reward = self.buffer[index]
-        state_text = ", ".join([str(s.item()) for s in state])
+        state_text = state
+        if type(state) is list:
+            state_text = ", ".join([str(s.item()) for s in state])
         return f"{step} | {state_text} | {action} | {reward}"
 
 
