@@ -1,0 +1,14 @@
+task: cliff_walking
+num_episodes: 100
+gym_env_name: CliffWalking-v0
+render_mode: null
+logdir: logs/cliff_walking_v2_o3_mini_new_template_3
+actions: [ [ 0, 1, 2, 3 ] ]
+states: [ [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 ] ]
+max_traj_count: 20
+max_traj_length: 50
+template_dir: agent/policy/templates
+llm_si_template_name: cliffwalking_si_4o_3.j2
+llm_output_conversion_template_name: cliffwalking_llm_output_conversion.j2
+llm_model_name: o3-mini-2025-01-31
+num_evaluation_episodes: 1

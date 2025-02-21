@@ -43,7 +43,7 @@ all_succ = []
 # root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_4'
 # root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_5'
 # root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_6'
-# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_7'
+root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_7'
 # root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter'
 # root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_reduced_process'
 # root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_low_gravity_6_reduced_process'
@@ -88,7 +88,63 @@ all_succ = []
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_3' # v2
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_4' # v2
 # root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_5' # v1
-root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_6' # v1
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_take_6' # v1
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gemini_1.5_flash_2_take_1' # v1
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_2_take_2' # v1
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_more_hist_2_take_3'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_3_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_3_forward_reward_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_3_forward_reward_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_forward_reward_only_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_forward_reward_only_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_forward_reward_only_take_3'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_take_4'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_take_5'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_take_1' # original reward with llm to supply the randomness in beam search
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_take_3'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_take_4'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_take_5'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_biased_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_biased_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_biased_take_3'
+
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_take_2'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_reward_take_1'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_reward_take_2_pretrained'
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_reward_take_3_pretrained_denser_traj'
+
+# root_folder = 'logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_forward_reward_only_take_3'
+
+# root_folder = 'logs/panda_reach_llm_num_optim_300_no_bias_range'
+# root_folder = 'logs/panda_reach_llm_num_optim_300_no_bias_std_1_range'
+
+# root_folder = 'logs/cliff_walking_v2_o3_mini_take_1'
+# root_folder = 'logs/cliff_walking_v2_4o_take_1'
+# root_folder = 'logs/cliff_walking_v2_4o_take_2_new_template'
+# root_folder = 'logs/cliff_walking_v2_o3_mini_new_template_3' # good
+# root_folder = 'logs/cliff_walking_v2_4o_new_template_4'
+
+
+# root_folder = 'logs/maze3x3_o3_mini_new_template_5'
+# root_folder = 'logs/maze3x3_o3_mini_new_template_7' # good
+# root_folder = 'logs/maze5x5_o3_mini_new_template_7'
+# root_folder = 'logs/maze5x5_o3_mini_new_template_7_take_2'
+# root_folder = 'logs/maze5x5_o3_mini_new_template_7_take_3'
+
+# root_folder = 'logs/pong_llm_num_optim_300_no_bias_std_1'
+# root_folder = 'logs/panda_reach_llm_num_optim_300_no_bias_std_1_range_6d'
+# root_folder = 'logs/panda_reach_llm_num_optim_300_no_bias_std_1_range_6d_sparse'
+
+# root_folder = 'logs/nav_track_llm_num_optim_300_no_bias_std_1'
+# root_folder = 'logs/nav_track_llm_num_optim_300_no_bias_std_1_exp_o3_mini'
+# root_folder = 'logs/nav_track_llm_num_optim_300_no_bias_std_1_exp'
+
+root_folder = 'logs/frozen_lake_o3_mini_8'
+# root_folder = 'logs/frozen_lake_4o_reflex' # good
+
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
 for folder in all_folders:
@@ -134,6 +190,15 @@ for i in range(len(all_succ)):
         break
 
 
+global_optimum = None
+if 'hopper' in root_folder.lower():
+    global_optimum = 2300
+elif 'mountain' in root_folder.lower():
+    global_optimum = 100
+elif 'cliff' in root_folder.lower():
+    global_optimum = -13
+
+
 # all_succ = [x if x > -500 and x < 200 else None for x in all_succ]
 # all_succ = [x if x < 200 else None for x in all_succ]
 
@@ -149,6 +214,9 @@ plt.figure(figsize=(8, 6))
 # plt.plot(episodes[:5], rewards_2, label="Q-Learning with LLM and human advice", marker='s')
 # plt.plot(episodes, all_succ, label="Linear Policy Update with LLM", marker='s')
 plt.plot(episodes, all_succ, label="Linear RL with LLM", marker='s')
+
+if global_optimum is not None:
+    plt.axhline(y=global_optimum, color='r', linestyle='--', alpha=0.5, label='Global Optimum')
 
 # Adding labels, legend, and title
 plt.xlabel("Episodes")

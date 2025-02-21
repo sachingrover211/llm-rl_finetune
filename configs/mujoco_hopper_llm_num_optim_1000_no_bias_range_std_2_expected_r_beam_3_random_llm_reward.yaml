@@ -1,8 +1,8 @@
 task: mujoco_hopper_llm_num_optim_no_bias
-num_episodes: 400
+num_episodes: 100
 gym_env_name: Hopper-v5
 render_mode: null
-logdir: logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_more_hist_2_take_3
+logdir: logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_3_random_llm_reward_take_4_denser_pretrained_gpt
 dim_actions: 3
 dim_states: 11
 max_traj_count: 1000
@@ -16,6 +16,10 @@ warmup_episodes: 20
 warmup_dir: null
 search_std: -1
 beam: true
-beam_width: 10
-num_new_candidate: 5
+beam_width: 5
+num_new_candidate: 3
 temperature: 1.2
+random: true
+using_llm: false
+forward_reward_only: false
+llm_reward: true

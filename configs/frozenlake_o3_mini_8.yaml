@@ -1,0 +1,15 @@
+task: frozen_lake
+num_episodes: 100
+gym_env_name: FrozenLake-v1
+render_mode: null
+logdir: logs/frozen_lake_o3_mini_8
+actions: [ [ 0, 1, 2, 3 ] ]
+states: [ [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ] ]
+max_traj_count: 20
+max_traj_length: 50
+template_dir: agent/policy/templates
+llm_si_template_name: frozen_lake_si_4o_8.j2
+llm_output_conversion_template_name: frozen_lake_llm_output_conversion.j2
+llm_model_name: o3-mini-2025-01-31
+num_evaluation_episodes: 1
+is_slippery: true

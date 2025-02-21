@@ -1,8 +1,8 @@
 task: mujoco_hopper_llm_num_optim_no_bias
-num_episodes: 400
+num_episodes: 250
 gym_env_name: Hopper-v5
 render_mode: null
-logdir: logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_more_hist_2_take_3
+logdir: logs/mujoco_hopper_llm_num_optim_400_no_bias_range_std_2_expected_r_beam_temp_1.2_gpt-4o-mini_3_forward_reward_take_2
 dim_actions: 3
 dim_states: 11
 max_traj_count: 1000

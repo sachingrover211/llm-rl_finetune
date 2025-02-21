@@ -28,12 +28,12 @@ class BlackjackWorld(BaseWorld):
 
     def step(self, action):
         self.steps += 1
-        action = action[0]
+        action = int(np.reshape(action, (1,)))
         assert action in range(2)
-        state, reward, done, _, _ = self.env.step(action)
+        state, reward, done, truncacted, _ = self.env.step(action)
         self.accu_reward += reward
 
-        if self.steps >= self.max_traj_length:
+        if self.steps >= self.max_traj_length or truncacted:
             done = True
 
         return state, reward, done

@@ -1,0 +1,11 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the environment of a maze grid world.
+The maze environment is a 2D 3x3 grid world (3 rows, 3 columns) where the agent can move up (0), down (1), right (2), left (3) (corresponding to action 0, 1, 2, 3). The state is between 0 and 8, representing the which grid the agent is in. The top row is 0 to 2, mid row is 3 to 5, bottom row is 6 to 8. The goal is to reach the state 8 (the right bottom grid). However, there are some walls in the maze that the agent cannot pass through. You need to explore through it by reading history trajectories.
+Next, you will see the previous rollout trajectories that shows the reward values for each state-action pair. Use this information to improve the q-table.
+{{ replay_buffer_string }}
+
+Among them, the last reward replay trajectory roll out is generated based on the following q-table:
+{{ q_table_string }}
+
+Based on the reward values, please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value).
+The q-table contains the q-values for each state-action pair. The q-values represent the expected future rewards the agent will receive when taking an action in a particular state. The agent uses the q-table to decide which action to take in each state. In detail, at each state, the agent will look up the q-values of all the available actions, and choose the action with the highest q-value.
+Please look at the last trajectory carefully and explain what is happening, what is wrong, what should be the next plan to try, and how you are proposing new q-values to facilitate the new plan. Only provide the state-action-q_value tuples that need to be updated. Please refer to the other previous trajectories to avoid bad behaviors.

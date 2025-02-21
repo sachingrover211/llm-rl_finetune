@@ -1,0 +1,29 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the environment of cliff walking.
+The cliff walking environment is a 2D 4x12 grid world (4 rows, 12 columns) where the agent can move up (0), right (1), down (2), left (3) (corresponding to action 0, 1, 2, 3). The state is between 0 and 47, representing the which grid the agent is in. The top row is 0 to 11, so on so forth. The goal is to reach the state 47 (the right bottom grid).
+The environment is slippery, which means when the agent takes an action, it will either move in that direction, or other directions except for the opposite direction. 
+- When the agent takes action 0 (up), it will move up, or left or right.
+- When the agent takes action 1 (right), it will move right, or up or down.
+- When the agent takes action 2 (down), it will move down, or left or right.
+- When the agent takes action 3 (left), it will move left, or up or down.
+
+Next, you will see the previous rollout trajectories that shows the reward values for each state-action pair. Use this information to improve the q-table.
+{{ replay_buffer_string }}
+
+Among them, the last reward replay trajectory roll out is generated based on the following q-table:
+{{ q_table_string }}
+
+As a reminder, the cliff walking environment is a 2D 4x12 grid world (4 rows, 12 columns) where the agent can move up (0), right (1), down (2), left (3) (corresponding to action 0, 1, 2, 3). The state is between 0 and 47, representing the which grid the agent is in. The top row is 0 to 11, so on so forth. The goal is to reach the state 47 (the right bottom grid).
+The environment is slippery, which means when the agent takes an action, it will either move in the 3 directions except for the opposite direction, each with 1/3 probability.
+- When the agent takes action 0 (up), it will move up, left, or right with equal probability.
+- When the agent takes action 1 (right), it will move right, up, or down with equal probability.
+- When the agent takes action 2 (down), it will move down, left, or right with equal probability.
+- When the agent takes action 3 (left), it will move left, up, or down with equal probability.
+
+Based on the reward values, please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value).
+The q-table contains the q-values for each state-action pair. The q-values represent the expected future rewards the agent will receive when taking an action in a particular state. The agent uses the q-table to decide which action to take in each state. In detail, at each state, the agent will look up the q-values of all the available actions, and choose the action with the highest q-value.
+Please look at the last trajectory carefully and explain what is happening, what is wrong (where did it fall into the cliff? was it not going to the goal efficiently?), propose solutions (what action can avoid the agent to fall into the cliff? what action can make the agent walk more efficiently?), and propose new q-values to facilitate the new plan. Please refer to the other previous trajectories to figure out the dangerous cliff.
+As the environment is slippery, the agent may fall into the cliff. Please find the q-values that:
+1. Guarantee not to fall into the cliff.
+2. Help the agent reach the goal state 47 as quickly as possible.
+3. Every state should not be ignored, as the agent might go to any state.
+4. Only provide the q-table entries that are needed to be changed, regarding the last trajectory.

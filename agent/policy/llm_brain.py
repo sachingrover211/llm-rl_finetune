@@ -5,6 +5,7 @@ import numpy as np
 import os
 import time
 from jinja2 import Template
+import traceback
 
 
 class LLMBrain:
@@ -18,7 +19,7 @@ class LLMBrain:
         self.llm_output_conversion_template = llm_output_conversion_template
         self.client = OpenAI()
         self.llm_conversation = []
-        assert llm_model_name in ["o1-preview", "gpt-4o"]
+        assert llm_model_name in ["o1-preview", "gpt-4o", "o3-mini-2025-01-31", "o1"]
         self.llm_model_name = llm_model_name
 
     def reset_llm_conversation(self):
@@ -66,11 +67,11 @@ class LLMBrain:
                             ((position, velocity), (action,), q_value)
                         )
                     except:
-                        pass
+                        traceback.print_exc()
 
         return new_q_values_list
 
-    def llm_update_q_table(self, q_table, replay_buffer, parse_q_table):
+    def llm_update_q_table(self, q_table, replay_buffer, parse_q_table=None):
         self.reset_llm_conversation()
 
         system_prompt = self.llm_si_template.render(
@@ -87,8 +88,10 @@ class LLMBrain:
         )
         new_q_table = self.query_llm()
 
-        # print(f"New Q-table: {new_q_table}")
+        print(f"New Q-table: {new_q_table}")
+        if not parse_q_table:
+            new_q_table_list = self.parse_q_table(new_q_table)
+        else:
+            new_q_table_list = parse_q_table(new_q_table)
 
-        new_q_table_list = parse_q_table(new_q_table)
-
-        return new_q_table_list, [new_q_table_with_reasoning, new_q_table]
+        return new_q_table_list, ['query:\n' + system_prompt + '\n\nresponse:\n' + new_q_table_with_reasoning, new_q_table]

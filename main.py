@@ -22,7 +22,14 @@ from runner import (
     pendulum_llm_num_optim_no_bias_runner,
     pendulum_llm_num_optim_no_bias_iter_runner,
     mujoco_hopper_llm_num_optim_no_bias_iter_runner,
-    mujoco_hopper_llm_num_optim_no_bias_runner
+    mujoco_hopper_llm_num_optim_no_bias_runner,
+    panda_reach_llm_num_optim_no_bias_runner,
+    cliff_walking_runner,
+    maze3x3_runner,
+    maze5x5_runner,
+    pong_llm_num_optim_no_bias_runner,
+    nav_track_llm_num_optim_no_bias_runner,
+    frozen_lake_runner,
 )
 
 
@@ -85,6 +92,20 @@ def main():
         mujoco_hopper_llm_num_optim_no_bias_runner.run_training_loop(**config)
     elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias_norm":
         mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_norm(**config)
+    elif config["task"] == "panda_reach_llm_num_optim_no_bias":
+        panda_reach_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "cliff_walking":
+        cliff_walking_runner.run_training_loop(**config)
+    elif config["task"] == "maze_3x3":
+        maze3x3_runner.run_training_loop(**config)
+    elif config["task"] == "maze_5x5":
+        maze5x5_runner.run_training_loop(**config)
+    elif config["task"] == "pong_llm_num_optim_no_bias":
+        pong_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "nav_track_llm_num_optim_no_bias":
+        nav_track_llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "frozen_lake":
+        frozen_lake_runner.run_training_loop(**config)
     else:
         raise ValueError(f"Task {config['task']} not recognized.")
 

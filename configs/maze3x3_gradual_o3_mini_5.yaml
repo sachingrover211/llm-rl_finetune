@@ -1,0 +1,14 @@
+task: maze_3x3
+num_episodes: 100
+gym_env_name: maze-sample-3x3-v0
+render_mode: false
+logdir: logs/maze3x3_o3_mini_new_template_5
+actions: [ [ 0, 1, 2, 3 ] ]
+states: [ [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] ]
+max_traj_count: 20
+max_traj_length: 50
+template_dir: agent/policy/templates
+llm_si_template_name: maze3x3_si_4o_5.j2
+llm_output_conversion_template_name: maze3x3_llm_output_conversion.j2
+llm_model_name: o3-mini-2025-01-31
+num_evaluation_episodes: 1

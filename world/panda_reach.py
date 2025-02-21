@@ -1,9 +1,10 @@
 from world.base_world import BaseWorld
 import gymnasium as gym
 import numpy as np
+import panda_gym
 
 
-class MujocoHopperWorld(BaseWorld):
+class PandaReachWorld(BaseWorld):
     def __init__(
         self,
         gym_env_name,
@@ -19,14 +20,12 @@ class MujocoHopperWorld(BaseWorld):
         self.accu_reward = 0
         self.max_traj_length = max_traj_length
 
-    def reset(self, new_reward=False):
+    def reset(self):
         del self.env
-        if not new_reward:
-            self.env = gym.make(self.gym_env_name, render_mode=self.render_mode)
-        else:
-            self.env = gym.make(self.gym_env_name, render_mode=self.render_mode, healthy_reward=0)
+        self.env = gym.make(self.gym_env_name, render_mode=self.render_mode)
 
         state, _ = self.env.reset()
+        state = np.concatenate([state["observation"], state["desired_goal"]])
         self.steps = 0
         self.accu_reward = 0
         return state
@@ -34,10 +33,11 @@ class MujocoHopperWorld(BaseWorld):
     def step(self, action):
         self.steps += 1
         action = action[0]
-        state, reward, done, _, _ = self.env.step(action)
+        state, reward, done, truncated, _ = self.env.step(action)
+        state = np.concatenate([state["observation"], state["desired_goal"]])
         self.accu_reward += reward
 
-        if self.steps >= self.max_traj_length:
+        if self.steps >= self.max_traj_length or truncated:
             done = True
 
         return state, reward, done
@@ -45,5 +45,3 @@ class MujocoHopperWorld(BaseWorld):
     def get_accu_reward(self):
         return self.accu_reward
     
-    def get_negated_accu_reward(self):
-        return 1500 - self.accu_reward

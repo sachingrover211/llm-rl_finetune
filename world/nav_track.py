@@ -3,18 +3,16 @@ import gymnasium as gym
 import numpy as np
 
 
-class FrozenLakeWorld(BaseWorld):
+class NavTrackWorld(BaseWorld):
     def __init__(
         self,
         gym_env_name,
         render_mode,
-        max_traj_length=50,
-        is_slippery=False,
+        max_traj_length=1000,
     ):
         super().__init__(gym_env_name)
         assert render_mode in ["human", "rgb_array", None]
-        self.env = gym.make(gym_env_name, render_mode=render_mode, map_name='4x4', is_slippery=is_slippery)
-        self.state_space = np.arange(16)
+        self.env = gym.make(gym_env_name, render_mode=render_mode, track_id=1)
         self.steps = 0
         self.accu_reward = 0
         self.max_traj_length = max_traj_length
@@ -27,7 +25,8 @@ class FrozenLakeWorld(BaseWorld):
 
     def step(self, action):
         self.steps += 1
-        assert action in range(4)
+        action = action
+        assert action in range(3)
         state, reward, done, truncated, _ = self.env.step(action)
         self.accu_reward += reward
 

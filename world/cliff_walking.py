@@ -3,7 +3,7 @@ import gymnasium as gym
 import numpy as np
 
 
-class FrozenLakeWorld(BaseWorld):
+class CliffWalkingWorld(BaseWorld):
     def __init__(
         self,
         gym_env_name,
@@ -13,8 +13,8 @@ class FrozenLakeWorld(BaseWorld):
     ):
         super().__init__(gym_env_name)
         assert render_mode in ["human", "rgb_array", None]
-        self.env = gym.make(gym_env_name, render_mode=render_mode, map_name='4x4', is_slippery=is_slippery)
-        self.state_space = np.arange(16)
+        self.env = gym.make(gym_env_name, render_mode=render_mode, is_slippery=is_slippery)
+        self.state_space = np.arange(48)
         self.steps = 0
         self.accu_reward = 0
         self.max_traj_length = max_traj_length

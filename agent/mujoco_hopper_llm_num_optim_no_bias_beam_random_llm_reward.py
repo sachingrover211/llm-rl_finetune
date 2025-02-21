@@ -7,6 +7,8 @@ import re
 import heapq
 import threading
 import os
+from openai import OpenAI
+import traceback
 
 
 class MujocoHopperLLMNumOptimBeamAgent:
@@ -24,6 +26,8 @@ class MujocoHopperLLMNumOptimBeamAgent:
         beam_width=5,
         num_new_candidate=5,
         temperature=1.0,
+        using_llm=False,
+        forward_reward_only=False,
     ):
         self.policy = LinearPolicy(dim_actions=dim_action, dim_states=dim_state)
         self.replay_buffer = EpisodeRewardBufferNoBias(max_size=max_traj_count)
@@ -38,9 +42,15 @@ class MujocoHopperLLMNumOptimBeamAgent:
         self.num_new_candidate = num_new_candidate
         heapq.heapify(self.candidates)
         self.temperature = temperature
+        self.using_llm = using_llm
+        self.forward_reward_only = forward_reward_only
 
-    def rollout_episode(self, world: MujocoHopperWorld, logging_file, record=True, training=True):
-        state = world.reset(new_reward=training)
+    def rollout_episode(
+        self, world: MujocoHopperWorld, logging_file, record=True, new_reward=True
+    ):
+        
+        all_states = []
+        state = world.reset(new_reward=new_reward)
         state = np.expand_dims(state, axis=0)
         if logging_file is not None:
             logging_file.write(
@@ -57,21 +67,25 @@ class MujocoHopperLLMNumOptimBeamAgent:
             if logging_file is not None:
                 logging_file.write(f"{state.T[0]} | {action[0]} | {reward}\n")
             state = next_state
+            all_states.append(state)
             step_idx += 1
         if logging_file is not None:
             logging_file.write(f"Total reward: {world.get_accu_reward()}\n")
         if record:
             self.replay_buffer.add(self.policy.weight, world.get_accu_reward())
-        return world.get_accu_reward()
+        return np.array(all_states), world.get_accu_reward()
 
     def rollout_multiple_episodes(
         self, num_episodes, world: MujocoHopperWorld, logging_file, record=True
     ):
-        results = []
+        all_states, all_rewards = [], []
         for episode in range(num_episodes):
-            result = self.rollout_episode(world, logging_file, record)
-            results.append(result)
-        return results
+            states, reward = self.rollout_episode(
+                world, logging_file, record, new_reward=self.forward_reward_only
+            )
+            all_states.append(states)
+            all_rewards.append(reward)
+        return all_states, all_rewards
 
     def random_warmup(self, world: MujocoHopperWorld, logdir, num_episodes):
         for episode in range(num_episodes):
@@ -80,18 +94,95 @@ class MujocoHopperLLMNumOptimBeamAgent:
             print(f"Rolling out warmup episode {episode}...")
             logging_filename = f"{logdir}/warmup_rollout_{episode}.txt"
             logging_file = open(logging_filename, "w")
-            result = self.rollout_episode(world, logging_file, training=False)
+            result = self.rollout_episode(
+                world, logging_file, new_reward=self.forward_reward_only
+            )
             print(f"Result: {result}")
 
-    def generate_new_candidates_random(self, candidate=None):
+    def generate_random_numbers(self, mean, std, shape=(11, 3), bulk=1):
+
+        count = np.prod(shape)
+
+        def parse_numbers(response_text):
+            numbers = []
+            for line in response_text.split("\n"):
+                try:
+                    number = float(line)
+                    numbers.append(number)
+                except ValueError:
+                    print(f"Failed to parse number: {line}")
+            # print(numbers)
+            numbers = numbers[:count]
+            return numbers
+
+        prompt = (
+            f"Generate {count + 5} random numbers from the normal distribution of the mean of 0 and the standard deviation of 10. "
+            "Provide one number in each line. Do no include any other text or characters."
+        )
+
+        for idx in range(5):
+            try:
+                response = self.llm_brain.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    n=bulk,
+                )
+
+                # Extract and parse response
+                if bulk == 1:
+                    response_text = response.choices[0].message.content.strip()
+
+                    numbers = parse_numbers(response_text)
+                    if len(numbers) != count:
+                        raise ValueError(
+                            f"Expected {count} numbers, but got {len(numbers)}"
+                        )
+                    numbers = (np.array(numbers).reshape(shape) / 10 + mean) * std
+                    return numbers
+                else:
+                    all_numbers = []
+                    for i in range(bulk):
+                        response_text = response.choices[i].message.content.strip()
+                        numbers = parse_numbers(response_text)
+                        if len(numbers) != count:
+                            raise ValueError(
+                                f"Expected {count} numbers, but got {len(numbers)}"
+                            )
+                        numbers = (np.array(numbers).reshape(shape) / 10 + mean) * std
+                        all_numbers.append(numbers)
+                    return np.array(all_numbers)
+            except Exception as e:
+                print(f"{idx}th trial failed with error: {e}")
+                traceback.print_exc()
+
+    def generate_new_candidates_random(
+        self, candidate=None, using_llm=False, new_candidates_ret=None, idx=0
+    ):
         if candidate is None:
             candidate = self.policy.weight
         else:
             candidate = candidate[1]
         new_candidates = []
-        for i in range(self.num_new_candidate):
-            new_candidate = candidate + np.random.normal(0, 0.5, candidate.shape)
-            new_candidates.append(new_candidate)
+        if not using_llm:
+            for i in range(self.num_new_candidate):
+                new_candidate = candidate + np.random.normal(0.0, 0.5, candidate.shape)
+                new_candidates.append(new_candidate)
+        else:
+            delta_new_candidate = self.generate_random_numbers(
+                0, 0.5, candidate.shape, self.num_new_candidate
+            )
+            with open(os.path.join(self.logdir, "delta_new_candidate.txt"), "a") as f:
+                for i in range(self.num_new_candidate):
+                    new_candidate = candidate + delta_new_candidate[i]
+                    f.write(
+                        f"{[x for x in list(delta_new_candidate[i].reshape(-1))]}\n\n"
+                    )
+                    new_candidates.append(new_candidate)
+
+        new_candidates_ret[idx] = new_candidates
         return new_candidates
 
     def generate_new_candidates_llm(
@@ -245,6 +336,121 @@ class MujocoHopperLLMNumOptimBeamAgent:
                     )
                 f.close()
 
+    def llm_find_best_candidates(self, logdir, trajs, N):
+        # trajs: [(traj, weight), ...]
+        N = min(N, len(trajs))
+
+        def format_trajectory(traj):
+            # Format the trajectory
+            traj_str = ""
+            for i in range(0, traj.shape[0], 5):
+                traj_str += f"Step {i+1}:\n"
+                for j in range(traj.shape[1]):
+                    traj_str += f"{traj[i, j]:.2f} "
+                    if (j + 1) % 11 == 0:
+                        traj_str += "\n"
+                traj_str += "\n"
+
+            return traj_str
+
+        def format_trajectories(trajs):
+            trajs_str = ""
+            for idx, (traj, weight, reward) in enumerate(trajs):
+                trajs_str += f"Trajectory {idx}:\n"
+                trajs_str += format_trajectory(traj)
+                trajs_str += f"\n\n"
+            return trajs_str
+
+        def build_prompt(traj_str):
+            # Write the prompt
+            prompt = f"""
+### You will see the trajectory of an execution of mujoco hopper environment. Your goal is to help me find out the best {N} trajectories out of the following {len(trajs)} trajectories.
+
+Each trajectory is a list of states of 11 dimensions. The 11 dimensions of the state are:
+1. z-position of the torso (vertical height)
+2. Orientation (the pitch angle around the y-axis)
+3. Thigh joint angle
+4. Leg joint angle
+5. Foot joint angle
+6. x-velocity (forward speed)
+7. z-velocity (vertical speed)
+8. Orientation (pitch) velocity
+9. Thigh joint velocity
+10. Leg joint velocity
+11. Foot joint velocity
+
+### The goal of hopper is to reach the x as forward as possible. The hopper is also subject to gravity and other forces.
+
+
+### Your goal is to analyze the trajectories and pick out the best {N} trajectories. Rank them from best to Nth best.
+Please follow the exact output format without any changes: Firstly, create the analysis for each of the trajectories. Here, you should write 1 line for each trajectory, so there needs to be {len(trajs)} lines. Then, write the conclusion with the best {N} trajectories, where you should list {N} integer numbers. The exact format should be exactly same as the following example:
+
+(In this example, there are 4 trajectories and the best 2 trajectories are 2 and 1. Your actual question will have different number of trajectories and different best trajectories.)
+# Analysis:
+Trajectory 0: <Description of the trajectory>
+Trajectory 1: <Description of the trajectory>
+Trajectory 2: <Description of the trajectory>
+Trajectory 3: <Description of the trajectory>
+
+# Conlusion:
+The best 2 trajectories are:
+Trajectory 2, Trajectory 1
+
+### Next, you will see {len(trajs)} trajectories. Please analyze the trajectories and pick out the best {N} trajectories. Rank them from best to Nth best. Give me your results according to the example format.
+{traj_str}
+            """
+
+            return prompt
+
+        def ask_llm(prompt):
+            # client = OpenAI(
+            #     base_url="http://en4146091l.scai.dhcp.asu.edu:11434/v1",
+            #     api_key="ollama",  # required, but unused
+            # )
+
+            client = OpenAI()
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                # model="deepseek-r1:70b",
+                messages=[
+                    {"role": "developer", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+            result = completion.choices[0].message.content
+            print('llm result: ', result)
+            return result
+
+        def parse_result(result):
+            # Parse the result
+            result = result.split('\n')[-1]
+            result = result.strip()
+            result = result.split(':')[-1].strip()
+            result = result.split(", ")
+            result = [int(x.strip().split(" ")[1]) for x in result]
+            return result
+
+        # Format the trajectories
+        trajs_str = format_trajectories(trajs)
+        # Build the prompt
+        prompt = build_prompt(trajs_str)
+        # Ask the LLM
+        result = ask_llm(prompt)
+        # Parse the result
+        result_parsed = parse_result(result)
+
+        if logdir:
+            with open(f"{logdir}/llm_reward.txt", "w") as f:
+                f.write(f"Prompt: \n{prompt}\n\n")
+                f.write(f"Result: \n{result}\n\n")
+                f.write(f"Result parsed: \n{result_parsed}\n\n")
+                f.write(f"Picked candidates: \n{[trajs[i][2] for i in result_parsed]}\nfrom {[x[2] for x in trajs]}\n")
+                f.close()
+        # Return the best trajectories
+        return [trajs[i] for i in result_parsed]
+
     def train_policy(self, world: MujocoHopperWorld, logdir, search_std):
 
         def parse_parameters(input_text):
@@ -283,30 +489,20 @@ class MujocoHopperLLMNumOptimBeamAgent:
 
         # Generate new candidates for each candidate
         if len(self.candidates) == 0:
-            result = self.rollout_multiple_episodes(5, world, None, record=False)
-            result = np.mean(result)
-            heapq.heappush(self.candidates, (result, self.policy.weight))
+            traj, result = self.rollout_multiple_episodes(1, world, None, record=False)
+            traj = traj[0]
+            result = result[0]
+            self.candidates.append([traj, self.policy.weight, result])
 
         system_prompts = [0] * len(self.candidates)
         new_candidates = [0] * len(self.candidates)
         reasonings_lists = [0] * len(self.candidates)
+
         threads = []
         for idx, candidate in enumerate(self.candidates):
             thread = threading.Thread(
-                target=self.generate_multiple_new_candidates_llm,
-                args=(
-                    system_prompts,
-                    new_candidates,
-                    reasonings_lists,
-                    idx,
-                    world,
-                    str_33d_examples(self.replay_buffer),
-                    parse_parameters,
-                    self.training_episodes,
-                    search_std,
-                    candidate,
-                    temperature,
-                ),
+                target=self.generate_new_candidates_random,
+                args=(candidate, self.using_llm, new_candidates, idx),
             )
             thread.start()
             threads.append(thread)
@@ -314,9 +510,14 @@ class MujocoHopperLLMNumOptimBeamAgent:
         for thread in threads:
             thread.join()
 
-        self.log_down_beam_search(
-            logdir, system_prompts, new_candidates, reasonings_lists
-        )
+        # for idx, candidate in enumerate(self.candidates):
+        #     new_candidates[idx] = self.generate_new_candidates_random(
+        #         candidate, using_llm=self.using_llm
+        #     )
+
+        # self.log_down_beam_search(
+        #     logdir, system_prompts, new_candidates, reasonings_lists
+        # )
 
         # print(new_candidates)
 
@@ -326,24 +527,23 @@ class MujocoHopperLLMNumOptimBeamAgent:
         new_candidates = new_candidates_2
 
         # Evaluate the new candidates, and keep the best ones
+        trajs = []
         for candidate in new_candidates:
             self.policy.update_policy(candidate)
-            # result = self.rollout_episode(world, open(f"{logdir}/training_rollout_{self.training_episodes}.txt", "w"), record=False)
-            result = self.rollout_multiple_episodes(20, world, None, record=False)
-            result = np.mean(result)
-            # self.replay_buffer.add(self.policy.weight, result)
-            heapq.heappush(self.candidates, (result, candidate))
-            if len(self.candidates) > self.beam_width:
-                heapq.heappop(self.candidates)
+            traj, result = self.rollout_multiple_episodes(1, world, None, record=False)
+            traj = traj[0]
+            result = result[0]
+            trajs.append((traj, candidate, result))
+
+        self.candidates = self.llm_find_best_candidates(logdir, trajs, self.beam_width)
 
         # Update the policy to the current best weight
-        print([x[0] for x in self.candidates])
+        print([x[2] for x in self.candidates])
         # input('Press enter to continue...')
-        best_candidate = heapq.nlargest(1, self.candidates)[0]
-        print(best_candidate[0])
+        best_candidate = self.candidates[0]
+        print(best_candidate[2])
         best_candidate = best_candidate[1]
         self.policy.update_policy(best_candidate)
-
 
         # Run the episode and collect the trajectory
         print(f"Rolling out episode {self.training_episodes}...")
@@ -351,13 +551,17 @@ class MujocoHopperLLMNumOptimBeamAgent:
         logging_file = open(logging_filename, "w")
         results = []
         for idx in range(20):
-            result = self.rollout_episode(world, logging_file, record=False, training=False)
-            results.append(result)
+            result = self.rollout_episode(
+                world,
+                logging_file,
+                record=False,
+                new_reward=False,
+            )
+            results.append(result[1])
         print(f"Results: {results}")
         result = np.mean(results)
         print(f"Mean Results: {result}")
         self.replay_buffer.add(self.policy.weight, result)
-
 
         self.training_episodes += 1
 
@@ -366,6 +570,8 @@ class MujocoHopperLLMNumOptimBeamAgent:
         for idx in range(self.num_evaluation_episodes):
             logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
             logging_file = open(logging_filename, "w")
-            result = self.rollout_episode(world, logging_file, record=False)
+            result = self.rollout_episode(
+                world, logging_file, record=False, new_reward=False
+            )
             results.append(result)
         return results

@@ -1,0 +1,11 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the environment of cliff walking.
+The cliff walking environment is a 2D 4x12 grid world (4 rows, 12 columns) where the agent can move up (0), right (1), down (2), left (3) (corresponding to action 0, 1, 2, 3). The state is between 0 and 47, representing the which grid the agent is in. The top row is 0 to 11, so on so forth. The goal is to reach the state 47 (the right bottom grid).
+Next, you will see the previous rollout trajectories that shows the reward values for each state-action pair. Use this information to improve the q-table.
+{{ replay_buffer_string }}
+
+Among them, the last reward replay trajectory roll out is generated based on the following q-table:
+{{ q_table_string }}
+
+Based on the reward values, please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value).
+The q-table contains the q-values for each state-action pair. The q-values represent the expected future rewards the agent will receive when taking an action in a particular state. The agent uses the q-table to decide which action to take in each state. In detail, at each state, the agent will look up the q-values of all the available actions, and choose the action with the highest q-value.
+Please explain what is happening, what is wrong, what needs to be corrected, and how you are proposing new q-values, and finally provide the new q-values. Only provide the state-action-q_value tuples that need to be updated.
