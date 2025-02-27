@@ -90,4 +90,4 @@ def run_training_loop(
 
         plot_reward(f"Frozen Lake Grid {grid_size}by{grid_size} average cost", avg, std, logdir, 100)
         write_to_file(logdir, ["Average cost", "Standard deviation", "Completed rounds"], [avg, std, completed_iterations])
-        plot_without_deviation(f"Frozen Lake Grid {grid_size}x{grid_size} average completions out of 20", "# of Completions", ci, logdir, 20.0)
+        plot_without_deviation(f"Frozen Lake Grid {grid_size}x{grid_size} completions out of 20", "# of Completions", completed_iterations, logdir, 20.0)

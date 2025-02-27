@@ -1,9 +1,9 @@
 task: grid_world
-experiments: 1
+experiments: 5
 num_episodes: 20
 gym_env_name: FrozenLake-v1
 render_mode: None
-logdir: logs/openai/frozen_lake_4x4
+logdir: logs/openai/frozen_lake/4x4
 actions: [["left", "down", "right", "up"]]
 grid_size: 4
 max_traj_count: 20

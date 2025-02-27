@@ -26,7 +26,7 @@ def plot_reward(title, reward, sd, logdir, max_limit, index = 0, do_clear_plot =
     is_first = False
 
 def plot_without_deviation(title, ylabel, avg, logdir, max_limit, index = 0, do_clear_plot = True):
-    episodes = list(range(len(reward)))
+    episodes = list(range(len(avg)))
     global is_first
 
     if do_clear_plot or is_first:
@@ -38,10 +38,10 @@ def plot_without_deviation(title, ylabel, avg, logdir, max_limit, index = 0, do_
         plt.grid(True)
 
     plt.plot(episodes, avg, label=f"Experiment {index}")
-    plt.legent(loc="lower right")
+    plt.legend(loc="lower right")
 
     if do_clear_plot:
-        plt.savefix(f"{logdir}/plot_{title}_{index}.png")
+        plt.savefig(f"{logdir}/plot_{title}_{index}.png")
         plt.clf()
 
     is_first = False
