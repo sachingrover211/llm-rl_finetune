@@ -9,6 +9,10 @@ class LinearPolicy(Policy):
         self.dim_actions = dim_actions
 
 
+    def initialize_policy_with_weights(self, weight):
+        self.weight = np.array(weight[:-1])
+        self.bias = np.array(weight[-1])
+
     def initialize_policy(self):
         #self.weight = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
         #self.bias = [[0.0, 0.0]]
