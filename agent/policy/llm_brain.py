@@ -95,3 +95,32 @@ class LLMBrain:
             new_q_table_list = parse_q_table(new_q_table)
 
         return new_q_table_list, ['query:\n' + system_prompt + '\n\nresponse:\n' + new_q_table_with_reasoning, new_q_table]
+
+    def llm_update_q_table_best_q_tables(self, q_table, replay_buffer, parse_q_table=None, best_q_tables=None):
+        self.reset_llm_conversation()
+
+        best_q_tables_string = ""
+        for reward, q_table in best_q_tables:
+            best_q_tables_string += f"Q-Table of reward {reward}: \n" + str(q_table) + "\n"
+
+        system_prompt = self.llm_si_template.render(
+            {"replay_buffer_string": str(replay_buffer), "q_table_string": str(q_table), "best_q_tables_string": best_q_tables_string}
+        )
+
+        self.add_llm_conversation(system_prompt, "user")
+        new_q_table_with_reasoning = self.query_llm()
+
+        self.add_llm_conversation(new_q_table_with_reasoning, "assistant")
+        self.add_llm_conversation(
+            self.llm_output_conversion_template.render(),
+            "user",
+        )
+        new_q_table = self.query_llm()
+
+        print(f"New Q-table: {new_q_table}")
+        if not parse_q_table:
+            new_q_table_list = self.parse_q_table(new_q_table)
+        else:
+            new_q_table_list = parse_q_table(new_q_table)
+
+        return new_q_table_list, ['query:\n' + system_prompt + '\n\nresponse:\n' + new_q_table_with_reasoning, new_q_table]

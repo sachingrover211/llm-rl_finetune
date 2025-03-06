@@ -2,6 +2,7 @@ from agent.policy.q import QTable
 from agent.policy.replay_buffer import ReplayBuffer
 from agent.policy.llm_brain import LLMBrain
 from world.blackjack import BlackjackWorld
+import numpy as np
 
 
 class BlackjackAgent:
@@ -42,6 +43,22 @@ class BlackjackAgent:
         return world.get_accu_reward()
 
     def train_policy(self, world: BlackjackWorld, logdir):
+
+
+        def parse_parameters(input_text):
+            parameters = []
+            for line in input_text.split("\n"):
+                line = line.strip().split("#")[0].strip()
+                if line:
+                    tokens = line.split("|")
+                    if len(tokens) == 3:
+                        try:
+                            parameters.append([eval(x) for x in tokens])
+                        except:
+                            pass
+            return parameters
+
+
         # Run the episode and collect the trajectory
         print(f"Rolling out episode {self.training_episodes}...")
         logging_filename = f"{logdir}/training_rollout.txt"
@@ -53,7 +70,7 @@ class BlackjackAgent:
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
         new_q_values_list, (reasoning, reasoning_processed) = self.llm_brain.llm_update_q_table(
-            self.q_table, self.replay_buffer
+            self.q_table, self.replay_buffer, parse_parameters
         )
         self.q_table.update_policy(new_q_values_list)
         logging_q_filename = f"{logdir}/q_table.txt"
@@ -81,3 +98,13 @@ class BlackjackAgent:
             results.append(result)
             logging_file.close()
         return results
+
+    def random_warmup(self, world: BlackjackWorld, logdir, num_episodes):
+        for episode in range(num_episodes):
+            self.q_table.initialize_policy()
+            # Run the episode and collect the trajectory
+            print(f"Rolling out warmup episode {episode}...")
+            logging_filename = f"{logdir}/warmup_rollout_{episode}.txt"
+            logging_file = open(logging_filename, "w")
+            result = self.rollout_episode(world, logging_file)
+            print(f"Result: {result}")

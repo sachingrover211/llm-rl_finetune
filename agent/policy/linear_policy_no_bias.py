@@ -21,6 +21,7 @@ class LinearPolicy(Policy):
         # print(np.matmul(state, self.weight).shape, (np.matmul(state, self.weight) + self.bias).shape)
         # print((np.matmul(state, self.weight) + self.bias).shape)
         # print()
+        # print(self.weight.shape, state.shape)
         return np.matmul(state, self.weight)
 
     def __str__(self):

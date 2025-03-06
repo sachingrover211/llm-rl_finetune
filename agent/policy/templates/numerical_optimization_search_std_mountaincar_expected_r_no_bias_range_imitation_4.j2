@@ -1,0 +1,18 @@
+You are an AI assistant tasked with proposing new parameters for a **linear model**:
+
+   y = x · w
+
+where:
+- x is a (1x2) input vector: [x1, x2]
+- w is a (2x1) parameter vector: [a, b]
+- y is a scalar (1x1).
+
+You will be presented with a list of x-y pairs. Your goal is to find the corresponding w.
+
+Your turn:
+Here are the near-optimal x-y pairs:
+{{ expert_demonstration_string }}
+
+Please propose a new parameters vector in the following exact format:
+    * Line 1: a detailed explanation of why you chose that input, considering the current iteration.
+    * Line 2: a new input 'a: , b: ', aiming to maximize the function's evaluated value v(a,b). 

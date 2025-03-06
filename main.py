@@ -30,6 +30,7 @@ from runner import (
     pong_llm_num_optim_no_bias_runner,
     nav_track_llm_num_optim_no_bias_runner,
     frozen_lake_runner,
+    nim_runner,
 )
 
 
@@ -106,6 +107,12 @@ def main():
         nav_track_llm_num_optim_no_bias_runner.run_training_loop(**config)
     elif config["task"] == "frozen_lake":
         frozen_lake_runner.run_training_loop(**config)
+    elif config["task"] == "nim":
+        nim_runner.run_training_loop(**config)
+    elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias_imitation":
+        mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_imitation(**config)
+    elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias_imitation_v5":
+        mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_imitation_v5(**config)
     else:
         raise ValueError(f"Task {config['task']} not recognized.")
 

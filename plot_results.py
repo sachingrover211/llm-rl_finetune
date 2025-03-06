@@ -43,7 +43,7 @@ all_succ = []
 # root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_4'
 # root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_5'
 # root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_6'
-root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_7'
+# root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_2_expected_r_take_7'
 # root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter'
 # root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_reduced_process'
 # root_folder = 'logs/pendulum_llm_num_optim_300_no_bias_range_std_1_expected_r_iter_low_gravity_6_reduced_process'
@@ -142,8 +142,21 @@ root_folder = 'logs/mujoco_invertedpendulum_llm_num_optim_300_no_bias_range_std_
 # root_folder = 'logs/nav_track_llm_num_optim_300_no_bias_std_1_exp_o3_mini'
 # root_folder = 'logs/nav_track_llm_num_optim_300_no_bias_std_1_exp'
 
-root_folder = 'logs/frozen_lake_o3_mini_8'
+# root_folder = 'logs/frozen_lake_o3_mini_8'
 # root_folder = 'logs/frozen_lake_4o_reflex' # good
+# root_folder = 'logs/frozen_lake_4o_reflex_10_training_rollouts'
+
+# # Nim
+# root_folder = 'logs/nim_4o_reflex_10_training_rollouts' # good
+
+# # Mountain Car Continuous with Imitation Learning
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_no_bias_range_imitation'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_no_bias_range_imitation_take_2'
+# root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_no_bias_range_imitation_take_3'
+
+# # Blackjack
+# root_folder = 'logs/blackjack_v1_take_2_500_warmup'
+root_folder = 'logs/blackjack_v1_take_2_500_warmup_best_1_q_tables'
 
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
@@ -154,18 +167,31 @@ for folder in all_folders:
     # read all text files in the folder. Read the last line of each file and extract the total reward. The last line looks like this: "Total reward: -157.0"
     rewards_succ = []
     rewards_fail = []
-    for filename in os.listdir(folder):
-        # if 'evaluation' in filename:
-        if 'training' in filename:
-        # if True:
-            with open(os.path.join(folder, filename), 'r') as f:
-                lines = f.readlines()
-                rewards = []
-                for line in lines:
-                    if 'Total reward' in line:
-                        total_reward = float(line.split()[-1])
-                        rewards.append(total_reward)
-                rewards_succ.append(np.mean(rewards))
+    if 'blackjack' not in root_folder:
+        for filename in os.listdir(folder):
+            # if 'evaluation' in filename:
+            if 'training' in filename:
+            # if True:
+                with open(os.path.join(folder, filename), 'r') as f:
+                    lines = f.readlines()
+                    rewards = []
+                    for line in lines:
+                        if 'Total reward' in line:
+                            total_reward = float(line.split()[-1])
+                            rewards.append(total_reward)
+                    rewards_succ.append(np.mean(rewards))
+    else:
+        curr_episode_rewards = []
+        for filename in os.listdir(folder):
+            if 'evaluation' in filename:
+                with open(os.path.join(folder, filename), 'r') as f:
+                    lines = f.readlines()
+                    curr_rewards = []
+                    for line in lines[1:]:
+                        curr_rewards.append(float(line.split('|')[-1]))
+                    curr_rewards = np.sum(curr_rewards)
+                    curr_episode_rewards.append(curr_rewards)
+        rewards_succ.append(np.mean(curr_episode_rewards))
     print(rewards_succ)
     print(rewards_fail)
     
@@ -207,6 +233,16 @@ import matplotlib.pyplot as plt
 # Data for the plot
 
 episodes = list(range(1, len(all_succ) + 1))
+if root_folder == 'logs/frozen_lake_4o_reflex':
+    episodes = [20 * x for x in episodes]
+
+    episodes = episodes[:150]
+    all_succ = all_succ[:150]
+elif root_folder == 'logs/frozen_lake_4o_reflex_10_training_rollouts':
+    episodes = [10 * x for x in episodes]
+
+    episodes = episodes[:300]
+    all_succ = all_succ[:300]
 
 # Creating the plot
 plt.figure(figsize=(8, 6))

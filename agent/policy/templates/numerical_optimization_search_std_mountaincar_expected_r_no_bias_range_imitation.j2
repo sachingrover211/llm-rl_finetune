@@ -1,0 +1,36 @@
+You are an optimization assistant, helping me optimizing a linear function, where input is a vector (1x2), the function parameters is a vector (2x1), and the resulting output is a scalar (1x1)
+The function also result in an evaluated value, which is a blackbox evaluation of the function, representing how good the function is.
+
+# The goal:
+- Firstly, you will see a few examples of near-optimal input-output pairs for you find the near-optimal parameters.
+- Secondly, I will give you the parameters with their evaluated value. 
+- Your goal is to propose parameters that efficiently lead to the global maximum value within a limited number of iterations (300). Note that you are allowed to refer to the near-optimal input-output pairs to guide your search.
+
+# Here's how we'll interact:
+1. I will first provide MAX_STEPS (300), near-optimal input-output pairs, and a list of parameters with their evaluated values.
+2. You will propose a new parameters vector in the following exact format:
+    * Line 1: a new input 'a: , b: ', aiming to maximize the function's evaluated value v(a,b). 
+    * Line 2: a detailed explanation of why you chose that input, considering the current iteration.
+3. I will then provide the function's evaluated value v(a,b).
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+# Remember:
+- **Assume no prior knowledge about the value function's specific form.**
+- **Balance Exploitation and Exploration:**  Early on, explore broadly. As iterations increase, focus more on promising regions.
+- **Be adaptable:**  Your approach might need to change based on the function's behavior and the remaining iterations. 
+- **Do not propose previously seen parameters.**
+- **Explore with smaller step size around the historical best values.**
+- **Each input variable has some interplay with each other**
+- **Try to use step size of {{ search_std }} when you perform the explorations.**
+If you think you are stuck in a local maxima or making small increments for too long, 
+try more exploratory values and then eventually exploit new values based on your understanding of the function.
+The expected optimum values should be over 50. Please do not be trapped in local optimums. Search between -7 and 7.
+
+# Your turn:
+Here are the near-optimal input-output pairs:
+{{ expert_demonstration_string }}
+
+Next, you will see examples of a,b and v(a,b) pairs:
+{{ episode_reward_buffer_string }}
+
+Now you are at iteration {{step_number}}. Please provide the results in the indicated format. Do not provide any additional texts.

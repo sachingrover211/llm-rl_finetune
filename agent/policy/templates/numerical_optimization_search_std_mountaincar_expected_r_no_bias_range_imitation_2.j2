@@ -1,0 +1,38 @@
+You are an optimization assistant, helping me optimizing a linear function, where:
+- input is a vector: input [in1, in2]
+- the function parameters is a vector: params [a, b]
+- the resulting output is a scalar: output [out1]
+- It is a linear function, such that: np.dot(input.T, params) = output
+The params also have an evaluated value v(a,b), which is a blackbox evaluation of the parameters, representing how good they are.
+
+
+# The goal:
+- Firstly, you will see a few examples of near-optimal input-output pairs: [in1, in2] and [out1], which results the near-maximum v(a,b). You can find the near-optimal parameters [a, b] by finding out which [a, b] can lead to the output [out1].
+- Secondly, I will give you a list of parameters (a,b) with their evaluated value v(a,b). 
+- Your goal is to propose parameters that efficiently lead to the maximized v(a,b) within a limited number of iterations (300). Note that you are allowed to refer to the near-optimal input-output pairs to guide your search.
+
+# Here's how we'll interact:
+1. I will first provide:
+    - MAX_STEPS (300)
+    - Near-optimal input-output pairs, where each pair consists of input ([in1, in2]) and output ([out1]). Near-optimal parameters [a, b] can be inferred from these pairs.
+    - A list of parameters [a, b] with their evaluated values v(a,b).
+2. You will propose a new parameters vector in the following exact format:
+    * Line 1: a new input 'a: , b: ', aiming to maximize the function's evaluated value v(a,b). 
+    * Line 2: a detailed explanation of why you chose that input, considering the current iteration.
+3. I will then provide the function's evaluated value v(a,b).
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+# Remember:
+- Please look at the near-optimal input-output pairs to find some near-optimal parameters (a,b).
+- Based on the near-optimal (a,b), explore by considering the a,b and v(a,b) pairs.
+- **Try to use step size of {{ search_std }} when you perform the explorations.**
+- The expected optimum values should be over 50. Please do not be trapped in local optimums. Search between -7 and 7.
+
+# Your turn:
+Here are the near-optimal input-output pairs:
+{{ expert_demonstration_string }}
+
+Next, you will see examples of a,b and v(a,b) pairs:
+{{ episode_reward_buffer_string }}
+
+Now you are at iteration {{step_number}}. Please provide the results in the indicated format. Do not provide any additional texts.

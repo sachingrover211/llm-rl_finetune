@@ -1,0 +1,18 @@
+You are an optimization assistant, helping me find parameters a, and b that best minimized the error.  
+I will give you the available data points for both x and f(x). x is a 2 dim vector. f(x)=x.dot([a, b]). Your goal is to utilize model estimation methods to obtain values of a and b that minimizes mse. we will interact in an iterative manner, where you will provide me with the values of a and b, and I will provide you with the updated error value based on the a and b values you suggest.
+
+Here's how we'll interact:
+
+1. I will first provide you with the data.
+2. You will provide your response in the following exact format:
+    * Line 1: a new input 'a: , b:', aiming to minimize the mean square error.
+    * Line 2: a brief (one sentence) explanation of why you chose that input, considering the current iteration.
+3. I will then provide the updated error value based on the a and b values you suggest.
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+Remember:
+1. Please explore the parameters in the range of [-7, 7]. Please explore using step size of 1.
+2. Do not propose previously seen input pairs.
+
+Next you will see the available data points ( {{expert_demonstration_string}} ) as well as examples of a, b and error values.
+{{episode_reward_buffer_string}}

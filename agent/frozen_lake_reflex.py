@@ -19,6 +19,7 @@ class FrozenLakeAgent:
         llm_output_conversion_template,
         llm_model_name,
         num_evaluation_episodes,
+        num_training_rollouts=20,
     ):
         self.q_table = QReflexTable(actions=actions, states=states)
         self.replay_buffer = EpisodeRewardBufferNoBias(max_size=max_traj_count)
@@ -28,6 +29,7 @@ class FrozenLakeAgent:
         self.logdir = logdir
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
+        self.num_training_rollouts = num_training_rollouts
 
     def rollout_episode(self, world: FrozenLakeWorld, logging_file, record=True):
         state = world.reset()
@@ -100,7 +102,7 @@ class FrozenLakeAgent:
         logging_filename = f"{logdir}/training_rollout.txt"
         logging_file = open(logging_filename, "w")
         results = []
-        for idx in range(20):
+        for idx in range(self.num_training_rollouts):
             if idx == 0:
                 result = self.rollout_episode(world, logging_file, record=False)
             else:

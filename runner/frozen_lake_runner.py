@@ -25,6 +25,7 @@ def run_training_loop(
     reflex=False,
     warmup_episodes=0,
     warmup_dir=None,
+    num_training_rollouts=20,
 ):
     assert task == "frozen_lake"
 
@@ -64,6 +65,7 @@ def run_training_loop(
             llm_output_conversion_template,
             llm_model_name,
             num_evaluation_episodes,
+            num_training_rollouts,
         )
 
 

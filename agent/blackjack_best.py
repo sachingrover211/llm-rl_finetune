@@ -1,0 +1,117 @@
+from agent.policy.q import QTable
+from agent.policy.replay_buffer import ReplayBuffer
+from agent.policy.llm_brain import LLMBrain
+from world.blackjack import BlackjackWorld
+import numpy as np
+import heapq
+
+
+class BlackjackAgent:
+    def __init__(
+        self,
+        logdir,
+        actions,
+        states,
+        max_traj_count,
+        max_traj_length,
+        llm_si_template,
+        llm_output_conversion_template,
+        llm_model_name,
+        num_evaluation_episodes,
+    ):
+        self.q_table = QTable(actions=actions, states=states)
+        self.replay_buffer = ReplayBuffer(
+            max_traj_count=max_traj_count, max_traj_length=max_traj_length
+        )
+        self.llm_brain = LLMBrain(
+            llm_si_template, llm_output_conversion_template, llm_model_name
+        )
+        self.logdir = logdir
+        self.num_evaluation_episodes = num_evaluation_episodes
+        self.training_episodes = 0
+        self.best_q_tables = []
+        self.best_q_tables_size = 1
+        heapq.heapify(self.best_q_tables)
+
+    def rollout_episode(self, world: BlackjackWorld, logging_file):
+        state = world.reset()
+        self.replay_buffer.start_new_trajectory()
+        logging_file.write(f"state | action | reward\n")
+        done = False
+        while not done:
+            action = self.q_table.get_action(state)
+            next_state, reward, done = world.step(action)
+            self.replay_buffer.add_step(state, action, reward)
+            logging_file.write(f"{state} | {action} | {reward}\n")
+            state = next_state
+        return world.get_accu_reward()
+
+    def train_policy(self, world: BlackjackWorld, logdir):
+
+
+        def parse_parameters(input_text):
+            parameters = []
+            for line in input_text.split("\n"):
+                line = line.strip().split("#")[0].strip()
+                if line:
+                    tokens = line.split("|")
+                    if len(tokens) == 3:
+                        try:
+                            parameters.append([eval(x) for x in tokens])
+                        except:
+                            pass
+            return parameters
+
+
+        # Run the episode and collect the trajectory
+        print(f"Rolling out episode {self.training_episodes}...")
+        logging_filename = f"{logdir}/training_rollout.txt"
+        logging_file = open(logging_filename, "w")
+        result = self.rollout_episode(world, logging_file)
+        logging_file.close()
+        heapq.heappush(self.best_q_tables, (result, self.q_table))
+        if len(self.best_q_tables) > self.best_q_tables_size:
+            heapq.heappop(self.best_q_tables)
+        print(f"Result: {result}")
+
+        # Update the policy using llm_brain, q_table and replay_buffer
+        print("Updating the policy...")
+        new_q_values_list, (reasoning, reasoning_processed) = self.llm_brain.llm_update_q_table_best_q_tables(
+            self.q_table, self.replay_buffer, parse_parameters, self.best_q_tables
+        )
+        self.q_table.update_policy(new_q_values_list)
+        logging_q_filename = f"{logdir}/q_table.txt"
+        logging_q_file = open(logging_q_filename, "w")
+        logging_q_file.write(str(self.q_table))
+        logging_q_file.close()
+        self.q_reasoning_filename = f"{logdir}/q_reasoning.txt"
+        self.q_reasoning_file = open(self.q_reasoning_filename, "w")
+        self.q_reasoning_file.write(reasoning)
+        self.q_reasoning_file.close()
+        self.q_reasoning_processed_filename = f"{logdir}/q_reasoning_processed.txt"
+        self.q_reasoning_processed_file = open(self.q_reasoning_processed_filename, "w")
+        self.q_reasoning_processed_file.write(reasoning_processed)
+        self.q_reasoning_processed_file.close()
+        print("Policy updated!")
+
+        self.training_episodes += 1
+
+    def evaluate_policy(self, world: BlackjackWorld, logdir):
+        results = []
+        for idx in range(self.num_evaluation_episodes):
+            logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
+            logging_file = open(logging_filename, "w")
+            result = self.rollout_episode(world, logging_file)
+            results.append(result)
+            logging_file.close()
+        return results
+
+    def random_warmup(self, world: BlackjackWorld, logdir, num_episodes):
+        for episode in range(num_episodes):
+            self.q_table.initialize_policy()
+            # Run the episode and collect the trajectory
+            print(f"Rolling out warmup episode {episode}...")
+            logging_filename = f"{logdir}/warmup_rollout_{episode}.txt"
+            logging_file = open(logging_filename, "w")
+            result = self.rollout_episode(world, logging_file)
+            print(f"Result: {result}")
