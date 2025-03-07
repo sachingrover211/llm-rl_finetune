@@ -7,7 +7,7 @@ import re
 import time
 from jinja2 import Template
 import tiktoken
-from utils.llm_interface import get_client, query_llm
+from utils.llm_interface import get_local_client, query_llm, query_local_llm
 
 
 class LLMBrain:
@@ -17,6 +17,8 @@ class LLMBrain:
         llm_output_conversion_template: Template,
         llm_model_name: str,
         llm_ui_template: Template = None,
+        model_type = "",
+        base_model = "",
     ):
         self.llm_si_template = llm_si_template
         self.llm_ui_template = llm_ui_template
@@ -24,31 +26,33 @@ class LLMBrain:
         self.client = OpenAI()
         self.llm_conversation = []
         print(llm_model_name)
-        assert llm_model_name in ["o3-mini-2025-01-31", "o3-mini", "o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
+        #assert llm_model_name in ["o3-mini-2025-01-31", "o3-mini", "o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
         self.llm_model_name = llm_model_name
         self.is_first_query = True
         self.episode = 0
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 500000
+        self.token_limit = 4096
         self.matrix_size = 0
-        self.model_type = "openai"
+        self.model_type = model_type
         self.TEXT_KEY = "content"
         self.SYSTEM_ACCOUNT = "system"
         if "gemini" in llm_model_name:
-            self.model_type = "gemini"
             self.SYSTEM_ACCOUNT = "user"
             self.TEXT_KEY = "parts"
 
+        if self.model_type in ["HF", "OFFLINE"]:
+            self.model, self.tokenizer = get_local_client(llm_model_name, base_model)
+
 
     def create_regex(self):
-        single_float = "[0-9 .-]+,"
+        single_float = "[0-9 .-]+[, ]+"
         reg = ""
         for _ in range(self.matrix_size[1]):
             reg += single_float
 
-        self.reg = reg[:-1]
+        self.reg = reg[:-5]
 
 
     def reset_llm_conversation(self):
@@ -74,7 +78,11 @@ class LLMBrain:
             # keeping the system prompt and never removing that.
             self.remove_llm_conversation(1)
 
-        response = query_llm(self.client, self.llm_model_name, self.llm_conversation)
+        if self.model_type in ["HF", "OFFLINE"]:
+            response = query_local_llm(self.model, self.tokenizer, self.llm_conversation)
+        else:
+            response = query_llm(self.client, self.llm_model_name, self.llm_conversation)
+
         return response
 
 
@@ -176,7 +184,10 @@ class LLMBrain:
         #    #print(temp)
         #    self.add_llm_conversation(temp, "user")
 
-        updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
+        if self.model_type in ["HF", "OFFLINE"]:
+            updated_matrix = self.parse_parameters_local(matrix_response_with_reasoning)
+        else:
+            updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
         trial = 0
         while trial < 3 and len(updated_matrix) != self.matrix_size[0]:
@@ -186,12 +197,16 @@ class LLMBrain:
                 "user"
             )
             response = self.query_llm()
-            updated_matrix = self.parse_parameters(response)
+            if self.model_type in ["HF", "OFFLINE"]:
+                updated_matrix = self.parse_parameters_local(response)
+            else:
+                updated_matrix = self.parse_parameters(response)
             #self.add_llm_conversation(response, "assistant")
             # there is no need to keep the communication
             self.remove_llm_conversation(-1)
             trial += 1
 
+        print(updated_matrix)
         self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
         return updated_matrix, matrix_response_with_reasoning
 
@@ -219,6 +234,44 @@ class LLMBrain:
                     #    break
                 except Exception as e:
                     print(f"Error while parsing {e}")
+
+        return new_parameters_list
+
+
+    def parse_parameters_local(self, parameters_string):
+        # parse params when the response is from local models
+        new_parameters_list = list()
+        single_float = "[0-9 .-]+[,\s]+"
+        new_ps = parameters_string.lower()
+        sub_split = ""
+        if "weights" in new_ps:
+            sub_split = "weights"
+        elif "weight matrix" in new_ps:
+            sub_split = "weight matrix"
+
+        check_string = ["", new_ps]
+        if sub_split != "":
+            # the import string is right after the split
+            check_string = new_ps.split(sub_split)
+
+        param_size = self.matrix_size[0] * self.matrix_size[1]
+        for i in range(1, len(check_string)):
+            chk = check_string[i]
+            temp = re.findall(single_float, chk)
+            for t in temp:
+                t = t.strip()
+                t = t.strip(',').strip()
+                if any(ch.isdigit() for ch in t):
+                    new_parameters_list.append(float(t))
+
+                if len(new_parameters_list) == param_size:
+                    break
+
+            if len(new_parameters_list) == param_size:
+                break
+
+        if len(new_parameters_list) == self.matrix_size[0]:
+            return np.array(new_parameters_list).reshape(self.matrix_size)
 
         return new_parameters_list
 
