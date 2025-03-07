@@ -31,6 +31,7 @@ from runner import (
     nav_track_llm_num_optim_no_bias_runner,
     frozen_lake_runner,
     nim_runner,
+    llm_num_optim_no_bias_runner,
 )
 
 
@@ -113,6 +114,8 @@ def main():
         mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_imitation(**config)
     elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias_imitation_v5":
         mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_imitation_v5(**config)
+    elif config["task"] == "mujoco_llm_num_optim_no_bias_rndm_proj":
+        llm_num_optim_no_bias_runner.run_training_loop(**config)
     else:
         raise ValueError(f"Task {config['task']} not recognized.")
 

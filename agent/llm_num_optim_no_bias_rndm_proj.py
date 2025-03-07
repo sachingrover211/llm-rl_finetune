@@ -1,4 +1,5 @@
-from agent.policy.linear_policy_no_bias import LinearPolicy
+from agent.policy.linear_policy_no_bias import LinearPolicy as LinearPolicyNoBias
+from agent.policy.linear_policy import LinearPolicy
 from agent.policy.replay_buffer import EpisodeRewardBufferNoBias
 from agent.policy.llm_brain_linear_policy import LLMBrain
 from world.base_world import BaseWorld
@@ -19,17 +20,27 @@ class LLMNumOptimRndmPrjAgent:
         llm_model_name,
         num_evaluation_episodes,
         rank,
+        bias,
     ):
         self.dim_action = dim_action
         self.dim_state = dim_state
+        self.bias = bias
+
+        if not self.bias:
+            param_count = dim_action * dim_state
+        else:
+            param_count = dim_action * dim_state + dim_action
         
-        self.G = np.random.randn(dim_action * dim_state, dim_action * dim_state)
+        self.G = np.random.randn(param_count, param_count)
         self.Q, self.R = np.linalg.qr(self.G)
         self.high_to_low_projection_matrix = self.Q[:, :rank]
         self.low_to_high_projection_matrix = self.Q[:, :rank].T
         self.rank = rank
         
-        self.policy = LinearPolicy(dim_actions=dim_action, dim_states=dim_state)
+        if not self.bias:
+            self.policy = LinearPolicyNoBias(dim_actions=dim_action, dim_states=dim_state)
+        else:
+            self.policy = LinearPolicy(dim_actions=dim_action, dim_states=dim_state)
         self.replay_buffer = EpisodeRewardBufferNoBias(max_size=max_traj_count)
         self.llm_brain = LLMBrain(
             llm_si_template, llm_output_conversion_template, llm_model_name
@@ -37,6 +48,9 @@ class LLMNumOptimRndmPrjAgent:
         self.logdir = logdir
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
+
+        if self.bias:
+            self.dim_state += 1
     
     def parameters_high_to_low(self, parameters):
         return parameters.reshape(-1) @ self.high_to_low_projection_matrix
@@ -54,7 +68,7 @@ class LLMNumOptimRndmPrjAgent:
         step_idx = 0
         while not done:
             action = self.policy.get_action(state.T)
-            action = np.reshape(action, (1, 3))
+            action = np.reshape(action, (1, self.dim_action))
             next_state, reward, done = world.step(action)
             logging_file.write(f"{state.T[0]} | {action[0]} | {reward}\n")
             state = next_state
