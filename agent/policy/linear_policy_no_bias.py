@@ -43,3 +43,6 @@ class LinearPolicy(Policy):
         self.weight = self.weight.reshape(
             self.dim_states, self.dim_actions
         )
+    
+    def get_parameters(self):
+        return self.weight

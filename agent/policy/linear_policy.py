@@ -43,3 +43,7 @@ class LinearPolicy(Policy):
             return
         self.weight = np.array(weight_and_bias_list[:-1])
         self.bias = np.expand_dims(np.array(weight_and_bias_list[-1]), axis=0)
+    
+    def get_parameters(self):
+        parameters = np.concatenate((self.weight, self.bias), axis=0)
+        return parameters

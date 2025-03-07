@@ -61,7 +61,7 @@ class LLMNumOptimRndmPrjAgent:
     def rollout_episode(self, world: BaseWorld, logging_file, record=True):
         state = world.reset()
         state = np.expand_dims(state, axis=0)
-        logging_file.write(f"{', '.join([str(x) for x in self.policy.weight.reshape(-1)])}\n")
+        logging_file.write(f"{', '.join([str(x) for x in self.policy.get_parameters().reshape(-1)])}\n")
         logging_file.write(f"parameter ends\n\n")
         logging_file.write(f"state | action | reward\n")
         done = False
@@ -76,7 +76,7 @@ class LLMNumOptimRndmPrjAgent:
         logging_file.write(f"Total reward: {world.get_accu_reward()}\n")
         if record:
             self.replay_buffer.add(
-                self.parameters_high_to_low(self.policy.weight), world.get_accu_reward()
+                self.parameters_high_to_low(self.policy.get_parameters()), world.get_accu_reward()
             )
         return world.get_accu_reward()
 
@@ -139,7 +139,7 @@ class LLMNumOptimRndmPrjAgent:
             results.append(result)
         print(f"Results: {results}")
         result = np.mean(results)
-        self.replay_buffer.add(self.parameters_high_to_low(self.policy.weight), result)
+        self.replay_buffer.add(self.parameters_high_to_low(self.policy.get_parameters()), result)
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
@@ -150,10 +150,10 @@ class LLMNumOptimRndmPrjAgent:
             search_std,
         )
 
-        print(self.policy.weight.shape)
+        print(self.policy.get_parameters().shape)
         print(new_parameter_list.shape)
         self.policy.update_policy(self.parameters_low_to_high(new_parameter_list))
-        print(self.policy.weight.shape)
+        print(self.policy.get_parameters().shape)
         logging_q_filename = f"{logdir}/parameters.txt"
         logging_q_file = open(logging_q_filename, "w")
         logging_q_file.write(str(self.policy))
