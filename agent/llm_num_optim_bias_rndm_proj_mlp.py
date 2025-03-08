@@ -1,6 +1,5 @@
 from agent.policy.linear_policy_no_bias import LinearPolicy as LinearPolicyNoBias
-from agent.policy.linear_policy import LinearPolicy
-from agent.policy.perceptron_policy import PerceptronPolicy
+from agent.policy.mlp_policy import MLPPolicy
 from agent.policy.replay_buffer import EpisodeRewardBufferNoBias
 from agent.policy.llm_brain_linear_policy import LLMBrain
 from world.base_world import BaseWorld
@@ -8,7 +7,7 @@ import numpy as np
 import re
 
 
-class LLMNumOptimRndmPrjAgent:
+class LLMNumOptimRndmPrjAgentMLP:
     def __init__(
         self,
         logdir,
@@ -26,22 +25,17 @@ class LLMNumOptimRndmPrjAgent:
         self.dim_action = dim_action
         self.dim_state = dim_state
         self.bias = bias
+        self.l1_dim = 11
 
-        if not self.bias:
-            param_count = dim_action * dim_state
-        else:
-            param_count = dim_action * dim_state + dim_action
-        
+        param_count = dim_state * self.l1_dim + self.l1_dim * dim_action + self.l1_dim + dim_action
         self.G = np.random.randn(param_count, param_count)
         self.Q, self.R = np.linalg.qr(self.G)
+
         self.high_to_low_projection_matrix = self.Q[:, :rank]
         self.low_to_high_projection_matrix = self.Q[:, :rank].T
         self.rank = rank
-        
-        if not self.bias:
-            self.policy = LinearPolicyNoBias(dim_actions=dim_action, dim_states=dim_state)
-        else:
-            self.policy = PerceptronPolicy(dim_actions=dim_action, dim_states=dim_state)
+
+        self.policy = MLPPolicy(dim_actions=dim_action, dim_states=dim_state, dim_l1=self.l1_dim)
         self.replay_buffer = EpisodeRewardBufferNoBias(max_size=max_traj_count)
         self.llm_brain = LLMBrain(
             llm_si_template, llm_output_conversion_template, llm_model_name
@@ -49,22 +43,43 @@ class LLMNumOptimRndmPrjAgent:
         self.logdir = logdir
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
+    
+    def parameters_high_to_low(self, parameters, layer):
+        if layer == 1:
+            return parameters.reshape(-1) @ self.high_to_low_projection_matrix[:self.dim_state * self.l1_dim + self.l1_dim, :]
+        else:
+            return parameters.reshape(-1) @ self.high_to_low_projection_matrix[self.dim_state * self.l1_dim + self.l1_dim:, :]
 
-        if self.bias:
-            self.dim_state += 1
-    
-    def parameters_high_to_low(self, parameters):
-        return parameters.reshape(-1) @ self.high_to_low_projection_matrix
-    
-    def parameters_low_to_high(self, parameters):
-        return (parameters.reshape(-1) @ self.low_to_high_projection_matrix).reshape(self.dim_state, self.dim_action)
+    def parameters_low_to_high(self, parameters, layer):
+        high_dim_params = parameters.reshape(-1) @ self.low_to_high_projection_matrix
+        
+        if layer == 1:
+            start_idx = 0
+            weight_size = self.dim_state * self.l1_dim
+            bias_size = self.l1_dim
+            end_idx = start_idx + weight_size + bias_size
+            
+            layer_params = high_dim_params[start_idx:end_idx]
+            weights = layer_params[:weight_size].reshape(self.dim_state, self.l1_dim)
+            biases = layer_params[weight_size:].reshape(1, self.l1_dim)
+        else:
+            start_idx = self.dim_state * self.l1_dim + self.l1_dim
+            weight_size = self.l1_dim * self.dim_action
+            bias_size = self.dim_action
+            end_idx = start_idx + weight_size + bias_size
+            
+            layer_params = high_dim_params[start_idx:end_idx]
+            weights = layer_params[:weight_size].reshape(self.l1_dim, self.dim_action)
+            biases = layer_params[weight_size:].reshape(1, self.dim_action)
+        
+        return weights, biases
 
     def rollout_episode(self, world: BaseWorld, logging_file, record=True):
         state = world.reset()
         state = np.expand_dims(state, axis=0)
         logging_file.write(f"{', '.join([str(x) for x in self.policy.get_parameters().reshape(-1)])}\n")
-        logging_file.write(f"parameter ends\n\n")
-        logging_file.write(f"state | action | reward\n")
+        logging_file.write("parameter ends\n\n")
+        logging_file.write("state | action | reward\n")
         done = False
         step_idx = 0
         while not done:
@@ -77,7 +92,11 @@ class LLMNumOptimRndmPrjAgent:
         logging_file.write(f"Total reward: {world.get_accu_reward()}\n")
         if record:
             self.replay_buffer.add(
-                self.parameters_high_to_low(self.policy.get_parameters()), world.get_accu_reward()
+                np.hstack(
+                    [self.parameters_high_to_low(self.policy.get_parameters(layer=1), layer=1),
+                    self.parameters_high_to_low(self.policy.get_parameters(layer=2), layer=2)]
+                ),
+                world.get_accu_reward()
             )
         return world.get_accu_reward()
 
@@ -107,7 +126,7 @@ class LLMNumOptimRndmPrjAgent:
             for match in matches:
                 results.append(float(match[1]))
             print(results)
-            assert len(results) == self.rank
+            assert len(results) == self.rank * 2
             return np.array(results).reshape(-1)
 
         def str_nd_examples(replay_buffer: EpisodeRewardBufferNoBias, n):
@@ -140,12 +159,15 @@ class LLMNumOptimRndmPrjAgent:
             results.append(result)
         print(f"Results: {results}")
         result = np.mean(results)
-        self.replay_buffer.add(self.parameters_high_to_low(self.policy.get_parameters()), result)
+        self.replay_buffer.add(np.hstack([
+                                    self.parameters_high_to_low(self.policy.get_parameters(layer=1), layer=1),
+                                    self.parameters_high_to_low(self.policy.get_parameters(layer=2), layer=2)
+                                    ]), result)
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
         new_parameter_list, reasoning = self.llm_brain.llm_update_parameters_num_optim(
-            str_nd_examples(self.replay_buffer, self.rank),
+            str_nd_examples(self.replay_buffer, self.rank*2),
             parse_parameters,
             self.training_episodes,
             search_std,
@@ -153,8 +175,12 @@ class LLMNumOptimRndmPrjAgent:
 
         print(self.policy.get_parameters().shape)
         print(new_parameter_list.shape)
-        self.policy.update_policy(self.parameters_low_to_high(new_parameter_list))
-        print(self.policy.get_parameters().shape)
+
+        weights_l1, bias_l1 = self.parameters_low_to_high(new_parameter_list[:self.rank], layer=1)
+        weights_l2, bias_l2 = self.parameters_low_to_high(new_parameter_list[self.rank:], layer=2)
+
+        self.policy.update_policy([weights_l1, bias_l1, weights_l2, bias_l2])
+        
         logging_q_filename = f"{logdir}/parameters.txt"
         logging_q_file = open(logging_q_filename, "w")
         logging_q_file.write(str(self.policy))

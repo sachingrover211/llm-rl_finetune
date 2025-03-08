@@ -156,7 +156,7 @@ all_succ = []
 
 # # Blackjack
 # root_folder = 'logs/blackjack_v1_take_2_500_warmup'
-root_folder = 'logs/blackjack_v1_take_2_500_warmup_best_1_q_tables'
+root_folder = 'logs/mujoco_hopper_llm_num_optim_400_bias_rndm_proj_perceptron_sigmoid_take_2'
 
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
@@ -249,8 +249,7 @@ plt.figure(figsize=(8, 6))
 # plt.plot(episodes, rewards_1, label="Q-Learning with LLM", marker='o')
 # plt.plot(episodes[:5], rewards_2, label="Q-Learning with LLM and human advice", marker='s')
 # plt.plot(episodes, all_succ, label="Linear Policy Update with LLM", marker='s')
-plt.plot(episodes, all_succ, label="Linear RL with LLM", marker='s')
-
+plt.plot(episodes, all_succ, label="Perceptron RL with LLM", marker='s')
 if global_optimum is not None:
     plt.axhline(y=global_optimum, color='r', linestyle='--', alpha=0.5, label='Global Optimum')
 
@@ -261,6 +260,7 @@ plt.title(root_folder)
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
+plt.show()
 
 # Display the plot
 plt.savefig(f'results_curves/{root_folder}.png')
