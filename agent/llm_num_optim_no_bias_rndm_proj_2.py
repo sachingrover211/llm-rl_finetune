@@ -125,26 +125,12 @@ class LLMNumOptimRndmPrjAgent:
             for parameters, reward in all_parameters:
                 l = ""
                 for i in range(n):
-                    l += f'params[{i}]: {parameters[i]:.15g}; '
+                    l += f'params[{i}]: {parameters[i]:.5g}; '
                 fxy = reward
                 l += f"f(params): {fxy:.2f}\n"
                 text += l
             return text
 
-        # Run the episode and collect the trajectory
-        print(f"Rolling out episode {self.training_episodes}...")
-        logging_filename = f"{logdir}/training_rollout.txt"
-        logging_file = open(logging_filename, "w")
-        results = []
-        for idx in range(20):
-            if idx == 0:
-                result = self.rollout_episode(world, logging_file, record=False)
-            else:
-                result = self.rollout_episode(world, logging_file, record=False)
-            results.append(result)
-        print(f"Results: {results}")
-        result = np.mean(results)
-        self.replay_buffer.add(self.parameters_high_to_low(self.policy.get_parameters()), result)
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
@@ -170,6 +156,22 @@ class LLMNumOptimRndmPrjAgent:
         q_reasoning_file.write(reasoning)
         q_reasoning_file.close()
         print("Policy updated!")
+
+
+        # Run the episode and collect the trajectory
+        print(f"Rolling out episode {self.training_episodes}...")
+        logging_filename = f"{logdir}/training_rollout.txt"
+        logging_file = open(logging_filename, "w")
+        results = []
+        for idx in range(20):
+            if idx == 0:
+                result = self.rollout_episode(world, logging_file, record=False)
+            else:
+                result = self.rollout_episode(world, logging_file, record=False)
+            results.append(result)
+        print(f"Results: {results}")
+        result = np.mean(results)
+        self.replay_buffer.add(new_parameter_list, result)
 
         self.training_episodes += 1
 

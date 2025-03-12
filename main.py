@@ -32,6 +32,7 @@ from runner import (
     frozen_lake_runner,
     nim_runner,
     llm_num_optim_no_bias_runner,
+    llm_num_optim_q_table_runner,
 )
 
 
@@ -114,8 +115,10 @@ def main():
         mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_imitation(**config)
     elif config["task"] == "mountaincar_continuous_action_llm_num_optim_no_bias_imitation_v5":
         mountaincar_continuous_action_llm_num_optim_no_bias_runner.run_training_loop_imitation_v5(**config)
-    elif config["task"] == "mujoco_llm_num_optim_no_bias_rndm_proj":
+    elif config["task"] in ["mujoco_llm_num_optim_no_bias_rndm_proj", "mujoco_llm_num_optim_no_bias_rndm_proj_2"]:
         llm_num_optim_no_bias_runner.run_training_loop(**config)
+    elif config["task"] == "llm_num_optim_q_table":
+        llm_num_optim_q_table_runner.run_training_loop(**config)
     else:
         raise ValueError(f"Task {config['task']} not recognized.")
 

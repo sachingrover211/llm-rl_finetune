@@ -1,0 +1,19 @@
+task: llm_num_optim_q_table
+world: nim
+num_episodes: 400
+gym_env_name: Nim-v0
+render_mode: null
+logdir: logs/nim_llm_num_optim_q_table_400_take_3
+actions: [ [ 0, 1, 2 ] ]
+states: [ [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] ]
+max_traj_count: 1000
+max_traj_length: 1000
+template_dir: agent/policy/templates
+llm_si_template_name: numerical_optimization_q_table.j2
+llm_output_conversion_template_name: swimmer_continuous_sas_llm_output_conversion_v4.j2
+llm_model_name: gpt-4o
+num_evaluation_episodes: 20
+num_training_rollouts: 10
+warmup_episodes: 20
+warmup_dir: null
+optimum: 1.0

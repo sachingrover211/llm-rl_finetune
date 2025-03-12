@@ -4,6 +4,7 @@ import numpy as np
 
 OBS_DIM = None
 ACT_DIM = None
+DISCRETE = None
 
 
 def evaluate_policy(env, W, num_episodes=1, max_steps=1000):
@@ -19,7 +20,10 @@ def evaluate_policy(env, W, num_episodes=1, max_steps=1000):
             # Action = W @ state
             # print(obs.shape, W.shape)
             W = W.reshape(OBS_DIM, ACT_DIM)
+            obs = obs / np.array([2.5, 2.5, 10., 10., np.pi * 2, -10, 0.5, 0.5]) + np.array([0., 0., 0., 0., 0., 0., -1., -1.])
             action = np.dot(obs, W)  # shape (3,)
+            if DISCRETE:
+                action = np.argmax(action)
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
             if terminated or truncated:
@@ -337,14 +341,19 @@ def train_linear_policy_cma_es(env_name="Hopper-v5",
     
     # Create Hopper-v5 environment
     env = gym.make(env_name)
-    
+
+    # Find whether the action space is discrete or continuous
+    global DISCRETE
+    DISCRETE = isinstance(env.action_space, gym.spaces.Discrete)
+
+    if DISCRETE:
+        act_dim = env.action_space.n
+    else:
+        act_dim = env.action_space.shape[0]       # Expect 3 for Hopper-v5
     obs_dim = env.observation_space.shape[0]  # Expect 11 for Hopper-v5
-    act_dim = env.action_space.shape[0]       # Expect 3 for Hopper-v5
     global OBS_DIM, ACT_DIM
     OBS_DIM = obs_dim
     ACT_DIM = act_dim
-    # assert obs_dim == 8, f"Expected obs_dim=8, got {obs_dim}"
-    # assert act_dim == 2,  f"Expected act_dim=2, got {act_dim}"
     
     # Flatten dimension for linear W
     param_dim = obs_dim * act_dim  # 11*3=33
@@ -372,7 +381,7 @@ def train_linear_policy_cma_es(env_name="Hopper-v5",
 
     iteration = 0
 
-    log_file = open(f"logs/cma_es_halfcheetah_rndm_prj_log_rank_{rank}_take_{exp_id}.txt", "w")
+    log_file = open(f"logs/cma_es_{env_name}_rndm_prj_log_rank_{rank}_take_{exp_id}.txt", "w")
     # CMA-ES main loop
     while not es.stop():
         iteration += 1
@@ -410,7 +419,9 @@ def train_linear_policy_cma_es(env_name="Hopper-v5",
               f"| Best Reward So Far: {best_score:.2f} "
               f"| Mean Reward This Iter: {(-np.mean(rewards)):.2f}")
         log_file.write(f"Mean Reward: {(-np.mean(rewards)):.2f}\n")
-        log_file.flush()
+
+        if iteration % 10 == 0:
+            log_file.flush()
         
         if iteration >= num_iterations:
             log_file.close()
@@ -484,6 +495,8 @@ def evaluate_linear_policy_with_bias(env, params, num_episodes=1, max_steps=1000
         for _ in range(max_steps):
             # Compute action = W @ obs + b
             action = W.dot(obs) + b
+            if DISCRETE:
+                action = np.argmax(action)
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
             if terminated or truncated:
@@ -513,8 +526,16 @@ def train_linear_policy_cma_es_with_bias(env_name="Hopper-v5",
     # Create Hopper-v5 environment
     env = gym.make(env_name)
 
+    # Check if action space is discrete or continuous
+    global DISCRETE
+    DISCRETE = isinstance(env.action_space, gym.spaces.Discrete)
+
+    if DISCRETE:
+        act_dim = env.action_space.n
+    else:
+        act_dim = env.action_space.shape[0]
+
     obs_dim = env.observation_space.shape[0]  # 11 for Hopper-v5
-    act_dim = env.action_space.shape[0]       # 3 for Hopper-v5
     global OBS_DIM, ACT_DIM
     OBS_DIM = obs_dim
     ACT_DIM = act_dim
@@ -544,7 +565,7 @@ def train_linear_policy_cma_es_with_bias(env_name="Hopper-v5",
     best_score = -np.inf
     generation = 0
 
-    log_file = open(f"logs/cma_es_bias_halfcheetah_rndm_prj_log_rank_{rank}_take_{exp_id}.txt", "w")
+    log_file = open(f"logs/cma_es_bias_{env_name}_rndm_prj_log_rank_{rank}_take_{exp_id}_norm.txt", "w")
     while not es.stop():
         generation += 1
         # Ask CMA-ES for candidate solutions
@@ -574,7 +595,9 @@ def train_linear_policy_cma_es_with_bias(env_name="Hopper-v5",
               f"| Mean Reward This Gen: {-np.mean(fitness_list):.2f}")
 
         log_file.write(f"Mean Reward: {(-np.mean(fitness_list)):.2f}\n")
-        log_file.flush()
+
+        if generation % 10 == 0:
+            log_file.flush()
 
         # If we've reached max_generations, we can stop
         if generation >= max_generations:
@@ -590,9 +613,9 @@ def train_hopper_cma_es_with_bias(task, exp_id, rank):
     ENV_NAME = task
     SEED = np.random.randint(0, 10000)
     MAX_GENERATIONS = 400
-    POP_SIZE = 16
-    INIT_SIGMA = 0.5
-    ROLLOUT_EPISODES = 1
+    POP_SIZE = 48
+    INIT_SIGMA = 3.0
+    ROLLOUT_EPISODES = 4
     MAX_STEPS = 1000
 
 
@@ -652,6 +675,10 @@ if __name__ == "__main__":
             return "Humanoid-v5"
         elif task.lower() == "pusher":
             return "Pusher-v5"
+        elif task.lower() == "lunarlander":
+            return "LunarLander-v3"
+        elif task.lower() == "bipedalwalker":
+            return "BipedalWalker-v3"
         else:
             raise ValueError("task must be either Hopper or HalfCheetah")
 

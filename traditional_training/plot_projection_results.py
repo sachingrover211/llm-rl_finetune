@@ -6,14 +6,23 @@ root = 'logs'
 def read_experiment_results(name):
     scores = []
     for i in range(10):
-        curr_scores = []
-        with open(f'{root}/{name}_take_{i+1}.txt', 'r') as f:
-            lines = f.readlines()
-            for line in lines:
-                score = float(line.split()[-1])
-                curr_scores.append(score)
-        scores.append(curr_scores)
-    return np.array(scores)
+        try:
+            curr_scores = []
+            with open(f'{root}/{name}_take_{i+1}.txt', 'r') as f:
+                lines = f.readlines()
+                for line in lines:
+                    score = float(line.split()[-1])
+                    curr_scores.append(score)
+            scores.append(curr_scores)
+        except FileNotFoundError:
+            break
+    return scores
+
+
+def align_score_lengths(scores):
+    min_len = min([len(s) for s in scores])
+    return [s[:min_len] for s in scores]
+
 
 def find_best_exp_results(scores):
     best_scores = []
@@ -22,15 +31,23 @@ def find_best_exp_results(scores):
     return best_scores
 
 
+
+
 def find_lower_upper_bound(name):
-    if 'swimmer' in name:
+    if 'swimmer' in name.lower():
         return -100, 1000
-    elif 'hopper' in name:
+    elif 'hopper' in name.lower():
         return -100, 3000
-    elif 'halfcheetah' in name:
+    elif 'halfcheetah' in name.lower():
         return -3000, 3000
+    elif 'lunarlander' in name.lower():
+        return -300, 300
+    elif 'bipedalwalker' in name.lower():
+        return -300, 300
+    elif 'ant' in name.lower():
+        return -1000, 3000
     else:
-        return -100, 1000
+        return -1000, 1000
 
 
 # Suppose these contain performance metrics across repeated runs:
@@ -38,11 +55,34 @@ def find_lower_upper_bound(name):
 B_name = 'cma_es_swimmer_rndm_prj_log_rank_5'
 B_name = 'cma_es_halfcheetah_rndm_prj_log_rank_5'
 B_name = 'cma_es_bias_halfcheetah_rndm_prj_log_rank_5'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_6'
+# B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_10'
+# B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_24'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_36'
+# B_name = 'cma_es_bias_BipedalWalker-v3_rndm_prj_log_rank_10'
+
+B_name = 'cma_es_bias_HalfCheetah-v5_rndm_prj_log_rank_5'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_5'
+B_name = 'cma_es_bias_BipedalWalker-v3_rndm_prj_log_rank_5'
+B_name = 'cma_es_bias_Walker2d-v5_rndm_prj_log_rank_5'
+B_name = 'cma_es_bias_Ant-v5_rndm_prj_log_rank_5'
+
+
+B_name = 'cma_es_bias_HalfCheetah-v5_rndm_prj_log_rank_6'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_6'
+B_name = 'cma_es_bias_BipedalWalker-v3_rndm_prj_log_rank_6' #
+B_name = 'cma_es_bias_Walker2d-v5_rndm_prj_log_rank_6'
+B_name = 'cma_es_bias_Ant-v5_rndm_prj_log_rank_6'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_15'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_20'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_24'
+B_name = 'cma_es_bias_LunarLander-v3_rndm_prj_log_rank_28'
 lower_lim, upper_lim = find_lower_upper_bound(B_name)
 
 
 
 raw_scores_B = read_experiment_results(B_name)
+raw_scores_B = align_score_lengths(raw_scores_B)
 scores_B = find_best_exp_results(raw_scores_B)
 
 # Use matplotlib to plot the raw scores. Find the std deviation of the scores. Use 2 colors to plot the 2 sets of scores.

@@ -21,19 +21,24 @@ import numpy as np
 class QReflexTable(Policy):
     def __init__(self, states, actions):
         super().__init__(states, actions)
-        self.q_table_length = len(states)
+
+
+        self.q_table_length = self._calculate_q_table_length(states)
         print(f"Q Table length: {self.q_table_length}")
-        if self.q_table_length > 30:
+        if self.q_table_length > 120:
             raise Exception("Q Table is too large to handle")
 
+        self.actions = actions
+        self.states = states
+        self.states = list(itertools.product(*self.states))
+        if len(self.states[0]) == 1:
+            self.states = [state[0] for state in self.states]
         self.initialize_policy()
 
-    def _calculate_q_table_length(self, states, actions):
+    def _calculate_q_table_length(self, states):
         length = 1
         for state in states:
             length *= len(state)
-        for action in actions:
-            length *= len(action)
         return length
 
     def initialize_policy(self):
@@ -53,9 +58,8 @@ class QReflexTable(Policy):
             actions = self.actions[0]
         else:
             actions = list(itertools.product(*self.actions))
-        for state in itertools.product(*self.states):
-            if len(state) == 1:
-                state = state[0]
+        
+        for state in self.states:
 
             self.mapping[state] = random.choice(actions)
 
@@ -106,4 +110,4 @@ class QReflexTable(Policy):
         """
 
         for idx, action in enumerate(new_q_table):
-            self.update_q_value(idx, action)
+            self.update_q_value(self.states[idx], action)

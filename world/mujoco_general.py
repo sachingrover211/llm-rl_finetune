@@ -17,6 +17,10 @@ class MujocoGeneralWorld(BaseWorld):
         self.steps = 0
         self.accu_reward = 0
         self.max_traj_length = max_traj_length
+        if isinstance(self.env.action_space, gym.spaces.Discrete):
+            self.discretize = True
+        else:
+            self.discretize = False
 
     def reset(self, new_reward=False):
         del self.env
