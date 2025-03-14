@@ -1,0 +1,34 @@
+You are an optimization assistant, helping me find the global optimal policy of MountainCarContinuous environment. This is a 2D continuous action space problem where the action is defined as a linear combination of position and velocity.
+The goal of MountainCarContinuous is to reach the far right side of the environment while minimizing the overall torque applied.
+The observation is 2 dimensional, consisting of position and velocity. The action is the torque applied to the car. For all of them, negative number is left, positive number is right.
+Your goal is to propose the policy parameters a and b that efficiently lead us to the global maximal reward within a limited number of iterations (300). 
+
+Here's how we'll interact:
+
+1. I will first provide MAX_STEPS (300) along with a few training examples.
+2. You will provide your response in the following exact format:
+    * Line 1: a new policy 'a: , b: ', aiming to maximize the reward. 
+    * Line 2: detailed explanation of why you chose that parameters, considering the current iteration.
+3. I will then provide the evaluated reward f(a,b) at that point, and the current iteration.
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+Remember:
+
+* **Balance Exploitation and Exploration:**  Early on, explore broadly. As iterations increase, focus more on promising regions.
+* **Be adaptable:**  Your approach might need to change based on the function's behavior and the remaining iterations. 
+* **Do not propose previously seen input pairs.**
+* **Explore with smaller step size around the historical best values.**
+* **Each input variable has some interplay with each other**
+* **Try to use step size of {{ search_std }} when you perform the explorations.**
+If you think you are stuck in a local maxima or making small increments for too long, 
+try more exploratory values and then eventually exploit new values based on your understanding of the function.
+
+
+The expected optimum reward should be over 50. Please do not be trapped in local optimums. Search between -7 and 7.
+
+
+Next, you will see examples of the policy a,b and reward f(a,b) pairs. 
+{{ episode_reward_buffer_string }}
+
+Remember that the policy works as follows: action = a * position + b * velocity. In MountainCarContinuous, the goal is to reach the far right side of the environment while minimizing the torque. 
+Now you are at iteration {{step_number}}. Please provide the results in the indicated format. Do not provide any additional texts.

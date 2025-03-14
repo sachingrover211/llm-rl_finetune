@@ -1,0 +1,16 @@
+task: mountaincar
+num_episodes: 20
+gym_env_name: MountainCar-v0
+render_mode: null
+num_position_bins: 10
+num_velocity_bins: 20
+logdir: logs/mountaincar_v1_take_2
+actions: [ [ 0, 1, 2 ] ]
+states: [ [ -5, -4, -3, -2, -1, 0, 1, 2, 3, 4 ], [ -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ] ]
+max_traj_count: 20
+max_traj_length: 300
+template_dir: agent/policy/templates
+llm_si_template_name: mountaincar_si.j2
+llm_output_conversion_template_name: mountaincar_llm_output_conversion.j2
+llm_model_name: gpt-4o
+num_evaluation_episodes: 20

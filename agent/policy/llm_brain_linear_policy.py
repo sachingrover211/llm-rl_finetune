@@ -195,7 +195,7 @@ class LLMBrain:
         ]
 
     def llm_update_parameters_num_optim(
-        self, episode_reward_buffer, parse_parameters, step_number, search_std, rank, optimum
+        self, episode_reward_buffer, parse_parameters, step_number, search_std, rank=None, optimum=None
     ):
         self.reset_llm_conversation()
 

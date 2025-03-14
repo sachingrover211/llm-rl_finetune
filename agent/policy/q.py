@@ -47,8 +47,10 @@ class QTable(Policy):
                                  are dictionaries. The inner dictionaries have actions 
                                  (tuples) as keys and random float values as values.
         """
-
+        self.idx_to_state_action = dict()
         self.mapping = dict()
+
+        i = 0
         for state in itertools.product(*self.states):
             if len(state) == 1:
                 state = state[0]
@@ -57,6 +59,9 @@ class QTable(Policy):
                 if len(action) == 1:
                     action = action[0]
                 self.mapping[state][action] = random.random()
+                self.idx_to_state_action[i] = (state, action)
+                i += 1
+
         print(self.mapping)
 
 
@@ -118,3 +123,11 @@ class QTable(Policy):
         
         for state, action, q_value in new_q_table:
             self.update_q_value(state, action, q_value)
+
+    def update_policy_vector(self, new_params):
+        for i in range(len(new_params)):
+            state, action = self.idx_to_state_action[i]
+            self.update_q_value(state, action, new_params[i])
+    
+    def get_policy_vector(self):
+        return [self.mapping[state][action] for state, action in self.idx_to_state_action.values()]

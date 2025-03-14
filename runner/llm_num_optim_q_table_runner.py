@@ -1,7 +1,9 @@
 from world.mountain_car import MountainCarWorld
 from world.gym_maze_3x3 import Maze3x3World
 from world.nim import NimWorld
+from world.cliff_walking import CliffWalkingWorld
 from agent.llm_num_optim_q_table import LLMNumOptimQTableAgent
+from agent.llm_num_optim_no_bias_rndm_proj_2_q_table import LLMNumOptimQTableRndmPrjAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 import traceback
@@ -29,6 +31,8 @@ def run_training_loop(
     warmup_episodes,
     warmup_dir,
     optimum=1000,
+    rank=None,
+    search_std=None,
 ):
     assert task in ["llm_num_optim_q_table"]
 
@@ -60,20 +64,43 @@ def run_training_loop(
             10,
             10,
         )
+    elif world == "cliffwalking":
+        world = CliffWalkingWorld(
+            gym_env_name,
+            render_mode,
+            max_traj_length,
+        )
 
-    agent = LLMNumOptimQTableAgent(
-        logdir,
-        actions,
-        states,
-        max_traj_count,
-        max_traj_length,
-        llm_si_template,
-        llm_output_conversion_template,
-        llm_model_name,
-        num_evaluation_episodes,
-        num_training_rollouts,
-        optimum,
-    )
+    if rank is None:
+        agent = LLMNumOptimQTableAgent(
+            logdir,
+            actions,
+            states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+            num_training_rollouts,
+            optimum,
+        )
+    else:
+        agent = LLMNumOptimQTableRndmPrjAgent(
+            logdir,
+            actions,
+            states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            num_evaluation_episodes,
+            num_training_rollouts,
+            rank,
+            search_std,
+            optimum,
+        )
 
     if not warmup_dir:
         warmup_dir = f"{logdir}/warmup"

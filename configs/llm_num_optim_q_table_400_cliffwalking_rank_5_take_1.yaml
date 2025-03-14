@@ -1,0 +1,21 @@
+task: llm_num_optim_q_table
+world: cliffwalking
+num_episodes: 400
+gym_env_name: CliffWalking-v0
+render_mode: null
+logdir: logs/cliffwalking_llm_num_optim_q_table_400_rank_5_take_1
+actions: [ [ 0, 1, 2, 3 ] ]
+states: [ [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 ] ]
+max_traj_count: 1000
+max_traj_length: 1000
+template_dir: agent/policy/templates
+llm_si_template_name: numerical_optimization_search_std_adaptive_hopper_no_bias_range_expected_r_rndm_proj_rank_all_search_step.j2
+llm_output_conversion_template_name: swimmer_continuous_sas_llm_output_conversion_v4.j2
+llm_model_name: gpt-4o
+num_evaluation_episodes: 20
+num_training_rollouts: 10
+warmup_episodes: 20
+warmup_dir: null
+optimum: 1.0
+rank: 5
+search_std: 0.1

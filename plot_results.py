@@ -156,7 +156,15 @@ all_succ = []
 
 # # Blackjack
 # root_folder = 'logs/blackjack_v1_take_2_500_warmup'
-root_folder = 'logs/blackjack_v1_take_2_500_warmup_best_1_q_tables'
+# root_folder = 'logs/blackjack_v1_take_2_500_warmup_best_1_q_tables'
+
+# root_folder = 'logs/mountaincar_llm_num_optim_q_table_400_rank_5_take_1'
+# root_folder = 'logs/mountaincar_llm_num_optim_q_table_400_rank_10_take_1'
+# root_folder = 'logs/mountaincar_llm_num_optim_q_table_400_rank_15_take_1'
+# root_folder = 'logs/mountaincar_llm_num_optim_q_table_400_rank_20_take_1'
+# root_folder = 'logs/cliffwalking_llm_num_optim_q_table_400_rank_5_take_1'
+# root_folder = 'logs/nim_llm_num_optim_q_table_400_rank_5_take_1'
+root_folder = 'logs/mountaincar_continuous_action_llm_num_optim_400_std_1_expected_r_no_bias_range_semantics'
 
 all_folders = [os.path.join(root_folder, x) for x in os.listdir(root_folder) if 'episode' in x]
 all_folders.sort(key=lambda x: int(x.split('_')[-1]))
