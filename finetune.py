@@ -5,16 +5,19 @@ import torch, datasets
 from datasets import Dataset, DatasetDict
 from peft import LoraConfig, get_peft_model
 from trl import GRPOConfig, GRPOTrainer
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from jinja2 import Environment, FileSystemLoader
 
 from agent.finetune.mountain_car_continuous import MountainCarFinetuneAgent
 from world.mountain_car import MountainCarContinuousWorld
 
+
 DEVICE = torch.device("cpu")
-if torch.cuda.is_available:
+if torch.cuda.is_available():
     DEVICE = torch.device("cuda")
 
-MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-3B-Instruct"
+#MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
 DATA_POINTS = 2000
 RL_SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The User is looking for a linear control policy "
@@ -23,7 +26,13 @@ RL_SYSTEM_PROMPT = (
     "are enclosed within the <think> </think> and <policy> </policy> tags respectively, i.e. "
     "<think> reasoning process here </think><policy> policy here </policy>"
 )
-LOGDIR = "logs/finetune/qwen_2.5_5_epoch"
+LOGDIR = "logs/finetune/qwen2.5_3B_5_epoch"
+TEMPLATE_DIR = "agent/policy/templates"
+TEMPLATE = "mountaincar_cont_si.j2"
+world = None
+agent = None
+os.environ['CUDA_LAUNCH_BLOCKING']="1"
+os.environ['TORCH_USE_CUDA_DSA']="1"
 
 def create_dataset(world, agent, logdir):
     os.makedirs(logdir, exist_ok = True)
@@ -53,8 +62,24 @@ def create_dataset(world, agent, logdir):
     #mask = np.random.rand(len(data)) < 0.8
     #train = data[mask]
     #test = data[~mask]
+
+    jinja2_env = Environment(loader = FileSystemLoader(TEMPLATE_DIR))
+    llm_template = jinja2_env.get_template(TEMPLATE)
+    prompts = list()
+    for _, row in data.iterrows():
+        matrix = f"Weights:\n{np.round(row['w0'], decimals = 4)}\n" + \
+            f"{np.round(row['w1'], decimals = 4)}\n" + \
+            f"Bias:\n{np.round(row['b'], decimals = 4)}"
+        prompts.append(llm_template.render({
+            "matrix_string": matrix,
+            "reward": np.round(row["evaluation"], decimals = 4)
+        }))
+
+
+    data['prompt'] = prompts
     ds = Dataset.from_pandas(data)
 
+    print(ds)
     train_test = ds.train_test_split(test_size = 0.2)
     #test_val = train_test["test"].train_test_split(test_size=0.5)
 
@@ -68,37 +93,57 @@ def create_dataset(world, agent, logdir):
 
 
 def make_rl_conversation(example):
-    #print(example, type(example))
-    #temp = json.dumps({
-    #    "weights": json.dumps([example["w0"], example["w1"], example["b"]]),
-    #    "evaluation": example["evaluation"]
-    #})
-    weights = json.dumps([example["w0"], example["w1"], example["b"]])
+    # print(example, type(example))
+    # temp = json.dumps({
+    #     "weights": json.dumps([example["w0"], example["w1"], example["b"]]),
+    #     "evaluation": example["evaluation"]
+    # })
+    # weights = json.dumps([example["w0"], example["w1"], example["b"]])
     return {
         "prompt": [
             {"role": "system", "content": RL_SYSTEM_PROMPT},
-            {"role": "user", "content": weights},
+            {"role": "user", "content": example["prompt"]},
         ],
     }
 
-def format_reward(completions, **kwargs):
+def format_soft_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
     pattern = r"^<think>.*?</think>\s*<policy>.*?</policy>$"
+    print("in soft reward", kwargs.keys(), len(completions), completions[0][0].keys())
     completion_contents = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content) for content in completion_contents]
     rewards_list = [1.0 if match else 0.0 for match in matches]
+    print(rewards_list)
     return rewards_list
 
+def format_hard_reward(completions, **kwargs):
+    """Reward function that checks if the completion has a specific format."""
+    """ takes policy structure into account """
+    pattern = r"^<think>.*?</think>\s*<policy>[0-9 .-]+[,\s]+[0-9 .-]+[,\s]+[0-9 .-]</policy>$"
+    print("in hard reward", kwargs.keys(), len(completions), completions[0][0].keys())
+    completion_contents = [completion[0]["content"] for completion in completions]
+    matches = [re.match(pattern, content) for content in completion_contents]
+    rewards_list = [1.0 if match else 0.0 for match in matches]
+    print(rewards_list)
+    return rewards_list
 
 def policy_reward(completions, **kwargs):
     # best reward for continuous is around 90 and above, but less than 100. +100 is given if the goal is reached.
     # There can be maximum 999 steps with reward of -0.1 * action^2 (again -100 max possible).
     # So first I add 1000 to ensure it is positive, and then divide by max possible of 200 to normalize it.
-    #print(example, type(example))
-    reward = [(_eval + 600)/800 for _eval in kwargs["evaluation"]]
+    #print("######## policy_reward completions")
+    #print(completions)
+    #print("######## policy_reward kwargs")
+    #print(kwargs)
+    #global world
+    #global agent
+    print("in policy reward", kwargs.keys(), len(completions), completions[0][0].keys())
+    reward = [(_eval + 200)/300 for _eval in kwargs["evaluation"]]
+    reward = [np.clip(r, 0.0, 1.0) for r in reward]
+    print(reward)
     return reward
 
-def main():
+def run():
     # create agent and world
     print("CUDA device availability ", torch.cuda.is_available(), DEVICE)
     print("Initialize Agent and World")
@@ -106,12 +151,14 @@ def main():
     world = MountainCarContinuousWorld("MountainCarContinuous-v0", None)
     agent = MountainCarFinetuneAgent("logs/fintune", 1, 2, 20, 1000, "", 2000, True, 20)
 
+    #global world
+    #world = _world
+    #global agent
+    #agent = _agent
     print("Create Dataset")
     train_ds, test_ds = create_dataset(world, agent, logdir)
     train_ds = train_ds.map(make_rl_conversation)
     test_ds = test_ds.map(make_rl_conversation)
-    # train_ds.to(DEVICE)
-    # test_ds.to(DEVICE)
     train_ds.remove_columns(["w0", "w1", "b"])
 
     print("setting up Finetuning algorithm")
@@ -129,6 +176,8 @@ def main():
         device_map="auto",
         torch_dtype=torch.float16,
     )
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+
     model = get_peft_model(model, lora_config)
     #model.to(DEVICE)
     model.print_trainable_parameters()
@@ -139,6 +188,7 @@ def main():
         gradient_accumulation_steps=16,
         num_train_epochs=5,
         bf16=False,
+        # use_cpu=True,
 
         # Parameters that control de data preprocessing
         max_completion_length=256, # default: 256
@@ -154,14 +204,15 @@ def main():
     )
     trainer = GRPOTrainer(
         model=model,
-        reward_funcs=[format_reward, policy_reward],
+        processing_class = tokenizer,
+        reward_funcs=[format_soft_reward, format_hard_reward, policy_reward],
         args=training_args,
-        train_dataset=train_ds
+        train_dataset=train_ds,
     )
     print("Training ...")
     trainer.train()
-    trainer.save_model(training_args.output_dir)
+    trainer.save_model(f"{training_args.output_dir}/final")
 
 
 if __name__ == "__main__":
-    main()
+    run()
