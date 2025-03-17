@@ -31,6 +31,7 @@ TEMPLATE_DIR = "agent/policy/templates"
 TEMPLATE = "mountaincar_cont_si.j2"
 world = None
 agent = None
+<<<<<<< HEAD
 os.environ['CUDA_LAUNCH_BLOCKING']="1"
 os.environ['TORCH_USE_CUDA_DSA']="1"
 
