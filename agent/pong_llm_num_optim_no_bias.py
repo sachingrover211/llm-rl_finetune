@@ -36,9 +36,19 @@ class PongLLMNumOptimAgent:
         logging_file.write(f"state | action | reward\n")
         done = False
         step_idx = 0
+
+        def log_sum_exp_softmax(x):
+            """Softmax using the log-sum-exp trick for numerical stability."""
+            x_max = np.max(x)  # Max value for stability
+            log_sum_exp = np.log(np.sum(np.exp(x - x_max)))  # Compute log-sum-exp
+            return np.exp(x - x_max - log_sum_exp)  # Normalize
+
         while not done:
             action = self.policy.get_action(state.T)
             action = np.reshape(action, (3,))
+            ##################################################
+            # action = log_sum_exp_softmax(action)
+            ##################################################
             action = np.argmax(action)
             next_state, reward, done = world.step(action)
             logging_file.write(f"{state.T[0]} | {action} | {reward}\n")

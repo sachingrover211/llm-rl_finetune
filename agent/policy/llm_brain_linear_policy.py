@@ -26,6 +26,7 @@ class LLMBrain:
             "gemini-1.5-flash",
             "gemini-1.5-flash-8b",
             "o3-mini-2025-01-31",
+            "gpt-4o-2024-11-20",
         ]
         self.llm_model_name = llm_model_name
         if "gemini" in llm_model_name:

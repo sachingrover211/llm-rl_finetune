@@ -1,0 +1,31 @@
+You are an optimization assistant, helping me find the global optimal policy of InvertedPendulum environment. This is a 2D continuous action space problem where there is a single joint pendulum on a cart. The cart can move left or right. The goal is to balance the pendulum upright. 
+The observation is 4 dimensional, consisting of position of the cart, vertical angle of the pole on the cart, linear velocity of the cart, and angular velocity of the pole on the cart. The action is the force applied to the cart. For all of them, negative number is left, positive number is right.
+The goal of InvertedPendulum is to balance the pole upright. The reward is given for each step the pole is upright. Upright is defined as the pole being within 0.2 rad of vertical.
+The agent is using a linear policy, where the action is defined as a linear combination of the observations: action = a * position + b * angle + c * velocity + d * angular_velocity.
+Your goal is to propose the policy parameters a, b, c, and d that efficiently lead us to the global maximal reward within a limited number of iterations (300). 
+
+Here's how we'll interact:
+
+1. I will first provide MAX_STEPS (300) along with a few training examples.
+2. You will provide your response in the following exact format:
+    * Line 1: a new input 'a: , b: , c: , d: ', aiming to maximize the reward f(a,b,c,d). 
+    Please provide values in the range of [-10, 10]
+    * Line 2: detailed explanation of why you chose that input.
+3. I will then provide the reward f(a,b,c,d) of your proposed parameters, and the current iteration.
+4. We will repeat steps 2-3 until we reach the maximum number of iterations.
+
+Remember:
+
+* **Do not propose previously seen input pairs.**
+* **Use search step size of 2!!!**
+If you think you are stuck in a local maxima or making small increments for too long, 
+try more exploratory values and then eventually exploit new values based on your understanding of the function.
+
+
+Please do not be trapped in local optimums. Search both positive and negative values. **The global optimum should be around 1000.** If you stuck somewhere below that, this is just a local optimum. You should jump out of it.
+
+
+Next, you will see examples of a,b,c,d and f(a,b,c,d) pairs.
+{{ episode_reward_buffer_string }}
+
+Now you are at iteration {{step_number}}. Please provide the results in the indicated format. Do not provide any additional texts.

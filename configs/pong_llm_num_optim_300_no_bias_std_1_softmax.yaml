@@ -1,8 +1,8 @@
 task: pong_llm_num_optim_no_bias
-num_episodes: 300
+num_episodes: 150
 gym_env_name: Pong-v0
 render_mode: rgb_array
-logdir: logs/pong_llm_num_optim_300_no_bias_std_1_take_3
+logdir: logs/pong_llm_num_optim_300_no_bias_std_1_no_softmax_1120_take_3
 dim_actions: 3
 dim_states: 5
 max_traj_count: 1000
@@ -10,7 +10,7 @@ max_traj_length: 1000
 template_dir: agent/policy/templates
 llm_si_template_name: numerical_optimization_search_std_1_pong_no_bias.j2
 llm_output_conversion_template_name: swimmer_continuous_sas_llm_output_conversion_v4.j2
-llm_model_name: gpt-4o
+llm_model_name: gpt-4o-2024-11-20
 num_evaluation_episodes: 20
 warmup_episodes: 20
 warmup_dir: null
