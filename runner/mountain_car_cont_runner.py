@@ -80,6 +80,8 @@ def run_training_loop(
             f.write(str(agent.policy))
 
         results = agent.evaluate_policy(world, curr_episode_dir)
+        policies = list()
+        policies.append(str(agent.policy).replace('\n', ', '))
 
         avg = list()
         std = list()
@@ -94,6 +96,7 @@ def run_training_loop(
             os.makedirs(curr_episode_dir, exist_ok=True)
             agent.train_policy(world, curr_episode_dir)
             print(f"New Matrix: {str(agent.policy)}")
+            policies.append(str(agent.policy).replace('\n', ', '))
             results = agent.evaluate_policy(world, curr_episode_dir)
             avg.append(np.average(results))
             std.append(np.std(results))
@@ -102,6 +105,9 @@ def run_training_loop(
             print(f"Episode {episode} Evaluation Results: {avg[-1]}, {std[-1]}")
             if episode > 0 and episode % print_episode == 0:
                 record_results(avg, std, logdir, max_limit)
+
+        with open(logdir+"/policies.txt", "w") as policy_file:
+            policy_file.write("\n".join(policies))
 
         print("Average", avg)
         print("Standard deviation", std)

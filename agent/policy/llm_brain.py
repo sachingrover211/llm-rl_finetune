@@ -23,7 +23,7 @@ class LLMBrain:
         self.llm_si_template = llm_si_template
         self.llm_ui_template = llm_ui_template
         self.llm_output_conversion_template = llm_output_conversion_template
-        self.client = OpenAI()
+        #self.client = OpenAI()
         self.llm_conversation = []
         print(llm_model_name)
         #assert llm_model_name in ["o3-mini-2025-01-31", "o3-mini", "o1-preview", "gpt-4o", "gemini-2.0-flash-exp"]
@@ -41,9 +41,10 @@ class LLMBrain:
         if "gemini" in llm_model_name:
             self.SYSTEM_ACCOUNT = "user"
             self.TEXT_KEY = "parts"
-
-        if self.model_type in ["HF", "OFFLINE"]:
-            self.model, self.tokenizer = get_local_client(llm_model_name, base_model)
+        elif self.model_type in ["HF", "OFFLINE"]:
+            self.model, self.tokenizer = get_local_client(llm_model_name, base_model, self.model_type)
+        else:
+            self.client = OpenAI()
 
 
     def create_regex(self):
@@ -189,7 +190,13 @@ class LLMBrain:
         else:
             updated_matrix = self.parse_parameters(matrix_response_with_reasoning)
 
+        # checks if the policy is updated and hasnt parsed wrong parameters
+        # from the response.
+        if not self.is_policy_updated(linear_policy, updated_matrix, average_reward):
+            updated_matrix = []
+
         trial = 0
+        print("matrix_size", self.matrix_size)
         while trial < 3 and len(updated_matrix) != self.matrix_size[0]:
             print("Could not parse matrix once, trying again", trial, updated_matrix)
             self.add_llm_conversation(
@@ -204,9 +211,12 @@ class LLMBrain:
             #self.add_llm_conversation(response, "assistant")
             # there is no need to keep the communication
             self.remove_llm_conversation(-1)
+            if not self.is_policy_updated(linear_policy, updated_matrix, average_reward):
+                updated_matrix = []
+
             trial += 1
 
-        print(updated_matrix)
+        print("updated_matrix", updated_matrix)
         self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
         return updated_matrix, matrix_response_with_reasoning
 
@@ -241,7 +251,8 @@ class LLMBrain:
     def parse_parameters_local(self, parameters_string):
         # parse params when the response is from local models
         new_parameters_list = list()
-        single_float = "[0-9 .-]+[,\s]+"
+        float_continuous = "[0-9 .-]+[,\s\]\)\}]+"
+        single_float = "[0-9 .-]+"
         new_ps = parameters_string.lower()
         sub_split = ""
         if "weights" in new_ps:
@@ -257,10 +268,10 @@ class LLMBrain:
         param_size = self.matrix_size[0] * self.matrix_size[1]
         for i in range(1, len(check_string)):
             chk = check_string[i]
-            temp = re.findall(single_float, chk)
+            temp = re.findall(float_continuous, chk)
             for t in temp:
-                t = t.strip()
-                t = t.strip(',').strip()
+                t = re.findall(single_float, t)[0]
+                t = t.strip().strip(".").strip()
                 if any(ch.isdigit() for ch in t):
                     new_parameters_list.append(float(t))
 
@@ -278,3 +289,23 @@ class LLMBrain:
 
     def get_token_count(self, message):
         return len(self.encoder.encode(message))
+
+    def is_policy_updated(self, old_policy, new_policy, reward):
+        if len(new_policy) != self.matrix_size[0]:
+            return True
+
+        is_updated = False
+
+        for i in range(self.matrix_size[0]):
+            for j in range(self.matrix_size[1]):
+                if str(new_policy[i][j]) in str(reward):
+                    return False
+                val = old_policy.get(i, j)
+
+                if not val:
+                    print("None returned from policy get")
+
+                if new_policy[i][j] != val:
+                    is_updated = True
+
+        return is_updated

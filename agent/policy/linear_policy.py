@@ -8,6 +8,16 @@ class LinearPolicy(Policy):
         self.dim_states = dim_states
         self.dim_actions = dim_actions
 
+    def get(self, si, ai):
+        if si > self.dim_states or ai >= self.dim_actions:
+            return None
+
+        if si == self.dim_states:
+            # basically this is the bias index
+            return self.bias[0][ai]
+        else:
+            return self.weight[si][ai]
+
 
     def initialize_policy_with_weights(self, weight):
         self.weight = np.array(weight[:-1])
