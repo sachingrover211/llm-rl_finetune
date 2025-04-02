@@ -98,9 +98,19 @@ class MountainCarContinuousAgent:
             self.llm_brain.reset_llm_conversation()
 
         if self.use_replay_buffer:
-            updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
-                self.policy, self.average_reward, replay_buffer_string
-            )
+            updated_matrix = []
+            trials = 0
+            # setting up an external loop to ensure that updated matrix works and it does not crash
+            # total 12 attempts with complete reset three times should be able to do it.
+            while trials < 3 and len(updated_matrix) != self.llm_brain.matrix_size[0]:
+                updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
+                    self.policy, self.average_reward, replay_buffer_string
+                )
+                trials += 1
+                if len(updated_matrix) != self.llm_brain.matrix_size[0]:
+                    # resetting to previous episode and trying again.
+                    print("will have to try again", updated_matrix)
+                    self.llm_brain.remove_llm_conversation[-1]
         else:
             updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
                 self.policy, self.average_reward, None

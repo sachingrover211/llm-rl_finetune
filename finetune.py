@@ -29,11 +29,9 @@ RL_SYSTEM_PROMPT = (
 LOGDIR = "logs/finetune/qwen2.5_3B_5_epoch"
 TEMPLATE_DIR = "agent/policy/templates"
 TEMPLATE = "mountaincar_cont_si.j2"
-world = None
-agent = None
-<<<<<<< HEAD
 os.environ['CUDA_LAUNCH_BLOCKING']="1"
 os.environ['TORCH_USE_CUDA_DSA']="1"
+rewards = list()
 
 def create_dataset(world, agent, logdir):
     os.makedirs(logdir, exist_ok = True)
@@ -120,7 +118,7 @@ def format_soft_reward(completions, **kwargs):
 def format_hard_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
     """ takes policy structure into account """
-    pattern = r"^<think>.*?</think>\s*<policy>[0-9 .-]+[,\s]+[0-9 .-]+[,\s]+[0-9 .-]</policy>$"
+    pattern = r"^<think>.*?</think>\s*<policy>[0-9 .-]+[.,\s\]\)\}|]+[0-9 .-]+[.,\s\]\)\}|]+[0-9 .-]+[.,\s\]\)\}|]*</policy>$"
     print("in hard reward", kwargs.keys(), len(completions), completions[0][0].keys())
     completion_contents = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content) for content in completion_contents]
@@ -128,21 +126,47 @@ def format_hard_reward(completions, **kwargs):
     print(rewards_list)
     return rewards_list
 
+def evaluate_response(response):
+    world = MountainCarContinuousWorld("MountainCarContinuous-v0", None)
+    agent = MountainCarFinetuneAgent("logs/fintune", 1, 2, 20, 1000, "", 2000, False, 20)
+
+    reward = 0.0
+    policy = agent.parse_response(response[0]['content'])
+    if policy is not None and len(policy) == agent.matrix_size[0]:
+        agent.initialize_policy(policy)
+        reward = agent.rollout_episode_without_logging(world)
+        reward = (reward + 200)/300
+        reward = np.clip(reward, 0.0, 1.0)
+
+    return reward
+
+
 def policy_reward(completions, **kwargs):
     # best reward for continuous is around 90 and above, but less than 100. +100 is given if the goal is reached.
     # There can be maximum 999 steps with reward of -0.1 * action^2 (again -100 max possible).
     # So first I add 1000 to ensure it is positive, and then divide by max possible of 200 to normalize it.
-    #print("######## policy_reward completions")
-    #print(completions)
-    #print("######## policy_reward kwargs")
-    #print(kwargs)
-    #global world
-    #global agent
-    print("in policy reward", kwargs.keys(), len(completions), completions[0][0].keys())
-    reward = [(_eval + 200)/300 for _eval in kwargs["evaluation"]]
-    reward = [np.clip(r, 0.0, 1.0) for r in reward]
-    print(reward)
-    return reward
+    global rewards
+    _rewards = [evaluate_response(completion) for completion in completions]
+    print("in policy_rewards", _rewards)
+    rewards = _rewards
+    return _rewards
+
+
+def policy_gradient_reward(completions, **kwargs):
+    global rewards
+    _rewards = list()
+    old_rewards = [(r + 200)/300 for r in kwargs["evaluation"]]
+    old_rewards = [np.clip(r, 0.0, 1.0) for r in old_rewards]
+    print(f"in policy_gradient_reward, global rewards {rewards}, and earlier evaluations {old_rewards}")
+    for ro, rn in zip(old_rewards, rewards):
+        if ro != 0:
+            _rewards.append((rn-ro)*rn/ro)
+        else:
+            _rewards.append(rn)
+
+    _rewards = [np.clip(r, 0.0, 1.0) for r in _rewards]
+    print("updated rewards ", _rewards)
+    return _rewards
 
 def run():
     # create agent and world
@@ -152,10 +176,6 @@ def run():
     world = MountainCarContinuousWorld("MountainCarContinuous-v0", None)
     agent = MountainCarFinetuneAgent("logs/fintune", 1, 2, 20, 1000, "", 2000, True, 20)
 
-    #global world
-    #world = _world
-    #global agent
-    #agent = _agent
     print("Create Dataset")
     train_ds, test_ds = create_dataset(world, agent, logdir)
     train_ds = train_ds.map(make_rl_conversation)
@@ -168,7 +188,7 @@ def run():
         r=8,
         lora_alpha=32,
         lora_dropout=0.1,
-        target_modules=["q_proj", "v_proj"],
+        target_modules=["q_proj", "k_proj", "o_proj", "up_proj", "down_proj"],
     )
 
     print("setting up model")
@@ -178,6 +198,7 @@ def run():
         torch_dtype=torch.float16,
     )
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    #model.resize_token_embeddings(len(tokenizer))
 
     model = get_peft_model(model, lora_config)
     #model.to(DEVICE)
@@ -206,7 +227,7 @@ def run():
     trainer = GRPOTrainer(
         model=model,
         processing_class = tokenizer,
-        reward_funcs=[format_soft_reward, format_hard_reward, policy_reward],
+        reward_funcs=[format_soft_reward, format_hard_reward, policy_reward, policy_gradient_reward],
         args=training_args,
         train_dataset=train_ds,
     )

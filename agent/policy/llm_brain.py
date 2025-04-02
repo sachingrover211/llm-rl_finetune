@@ -251,7 +251,7 @@ class LLMBrain:
     def parse_parameters_local(self, parameters_string):
         # parse params when the response is from local models
         new_parameters_list = list()
-        float_continuous = "[0-9 .-]+[,\s\]\)\}]+"
+        float_continuous = "[0-9 .-]+[.,\s\]\)\}|]+"
         single_float = "[0-9 .-]+"
         new_ps = parameters_string.lower()
         sub_split = ""
