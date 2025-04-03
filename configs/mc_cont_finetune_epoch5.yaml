@@ -3,7 +3,7 @@ experiments: 2
 num_episodes: 100
 gym_env_name: MountainCarContinuous-v0
 render_mode: None
-logdir: logs/finetune/evaluation/continuous_mc/qwen2.5_0.5B_finetuned_epoch5
+logdir: logs/evaluation/continuous_mc/qwen2.5_3B_epoch3
 actions: 1
 states: 2
 max_traj_count: 20
@@ -13,9 +13,9 @@ llm_si_template_name: mountaincar_cont_domain.j2
 llm_ui_template_name: mountaincar_cont_episode.j2
 llm_output_conversion_template_name: mountaincar_cont_llm_output_conversion.j2
 #llm_model_name: gpt-4o
-llm_model_name: logs/finetune/qwen_2.5_5_epoch/mountain_car_continuous-test
+llm_model_name: logs/finetune/completed/qwen2.5_3B_5epoch_cont_mc/checkpoint-150
 model_type: OFFLINE
-base_model: Qwen/Qwen2.5-0.5B-Instruct
+base_model: Qwen/Qwen2.5-3B-Instruct
 num_evaluation_episodes: 20
 record_video: True
 use_replay_buffer: False

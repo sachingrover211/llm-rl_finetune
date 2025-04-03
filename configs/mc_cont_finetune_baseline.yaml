@@ -3,7 +3,7 @@ experiments: 2
 num_episodes: 100
 gym_env_name: MountainCarContinuous-v0
 render_mode: None
-logdir: logs/finetune/evaluation/continuous_mc/qwen2.5_3B_baseline
+logdir: logs/evaluation/continuous_mc/qwen2.5_3B_baseline
 actions: 1
 states: 2
 max_traj_count: 20
