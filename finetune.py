@@ -16,9 +16,10 @@ DEVICE = torch.device("cpu")
 if torch.cuda.is_available():
     DEVICE = torch.device("cuda")
 
-MODEL_ID = "Qwen/Qwen2.5-3B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-32B-Instruct"
+#MODEL_ID = "Qwen/Qwen2.5-3B-Instruct"
 #MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
-DATA_POINTS = 2000
+DATA_POINTS = 4000
 RL_SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The User is looking for a linear control policy "
     "for the continuous Mountain Car Domain. Assistant first thinks about the reasoning process "
@@ -26,7 +27,7 @@ RL_SYSTEM_PROMPT = (
     "are enclosed within the <think> </think> and <policy> </policy> tags respectively, i.e. "
     "<think> reasoning process here </think><policy> policy here </policy>"
 )
-LOGDIR = "logs/finetune/qwen2.5_3B_5_epoch"
+LOGDIR = "logs/finetune/qwen2.5_32B_5_epoch"
 TEMPLATE_DIR = "agent/policy/templates"
 TEMPLATE = "mountaincar_cont_si.j2"
 os.environ['CUDA_LAUNCH_BLOCKING']="1"
@@ -34,6 +35,7 @@ os.environ['TORCH_USE_CUDA_DSA']="1"
 rewards = list()
 
 def create_dataset(world, agent, logdir):
+    maximum_possible = 100
     os.makedirs(logdir, exist_ok = True)
     file_name = f"{logdir}/mountain_car_dataset.csv"
     data = None
@@ -71,7 +73,8 @@ def create_dataset(world, agent, logdir):
             f"Bias:\n{np.round(row['b'], decimals = 4)}"
         prompts.append(llm_template.render({
             "matrix_string": matrix,
-            "reward": np.round(row["evaluation"], decimals = 4)
+            "reward": np.round(row["evaluation"], decimals = 4),
+            "optimum": maximum_possible
         }))
 
 
@@ -108,22 +111,22 @@ def make_rl_conversation(example):
 def format_soft_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
     pattern = r"^<think>.*?</think>\s*<policy>.*?</policy>$"
-    print("in soft reward", kwargs.keys(), len(completions), completions[0][0].keys())
+    #print("in soft reward", kwargs.keys(), len(completions), completions[0][0].keys())
     completion_contents = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content) for content in completion_contents]
     rewards_list = [1.0 if match else 0.0 for match in matches]
-    print(rewards_list)
+    #print(rewards_list)
     return rewards_list
 
 def format_hard_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
     """ takes policy structure into account """
     pattern = r"^<think>.*?</think>\s*<policy>[0-9 .-]+[.,\s\]\)\}|]+[0-9 .-]+[.,\s\]\)\}|]+[0-9 .-]+[.,\s\]\)\}|]*</policy>$"
-    print("in hard reward", kwargs.keys(), len(completions), completions[0][0].keys())
+    #print("in hard reward", kwargs.keys(), len(completions), completions[0][0].keys())
     completion_contents = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content) for content in completion_contents]
     rewards_list = [1.0 if match else 0.0 for match in matches]
-    print(rewards_list)
+    #print(rewards_list)
     return rewards_list
 
 def evaluate_response(response):
@@ -147,7 +150,7 @@ def policy_reward(completions, **kwargs):
     # So first I add 1000 to ensure it is positive, and then divide by max possible of 200 to normalize it.
     global rewards
     _rewards = [evaluate_response(completion) for completion in completions]
-    print("in policy_rewards", _rewards)
+    #print("in policy_rewards", _rewards)
     rewards = _rewards
     return _rewards
 
@@ -157,7 +160,7 @@ def policy_gradient_reward(completions, **kwargs):
     _rewards = list()
     old_rewards = [(r + 200)/300 for r in kwargs["evaluation"]]
     old_rewards = [np.clip(r, 0.0, 1.0) for r in old_rewards]
-    print(f"in policy_gradient_reward, global rewards {rewards}, and earlier evaluations {old_rewards}")
+    #print(f"in policy_gradient_reward, global rewards {rewards}, and earlier evaluations {old_rewards}")
     for ro, rn in zip(old_rewards, rewards):
         if ro != 0:
             _rewards.append((rn-ro)*rn/ro)
@@ -165,7 +168,7 @@ def policy_gradient_reward(completions, **kwargs):
             _rewards.append(rn)
 
     _rewards = [np.clip(r, 0.0, 1.0) for r in _rewards]
-    print("updated rewards ", _rewards)
+    #print("updated rewards ", _rewards)
     return _rewards
 
 def run():
@@ -195,7 +198,7 @@ def run():
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
         device_map="auto",
-        torch_dtype=torch.float16,
+        torch_dtype=torch.bfloat16,
     )
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
     #model.resize_token_embeddings(len(tokenizer))
@@ -209,7 +212,7 @@ def run():
         remove_unused_columns=False, # to access the solution column in accuracy_reward
         gradient_accumulation_steps=16,
         num_train_epochs=5,
-        bf16=False,
+        bf16=True,
         # use_cpu=True,
 
         # Parameters that control de data preprocessing

@@ -5,3 +5,8 @@ matplotlib
 jinja2
 pyyaml
 gymnasium[all]
+tiktoken
+google-generativeai
+tensorboard
+peft
+trl
