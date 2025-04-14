@@ -1,0 +1,25 @@
+task: cartpole
+experiments: 2
+num_episodes: 100
+gym_env_name: Cartpole-v1
+render_mode: None
+logdir: logs/evaluation/cartpole/numeric_qwen2.5_3B_baseline
+actions: 2
+states: 4
+max_traj_count: 20
+max_traj_length: 500
+template_dir: agent/policy/templates
+llm_si_template_name: semantic_optimization.j2
+llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
+llm_output_conversion_template_name: output_conversion.j2
+env_desc_file: env_descriptions/cartpole.j2
+#llm_model_name: gpt-4o
+llm_model_name: Qwen/Qwen2.5-3B-Instruct
+model_type: HF
+base_model: Qwen/Qwen2.5-3B-Instruct
+num_evaluation_episodes: 20
+step_size: 1.0
+reset_llm_conversation: False
+print_episode: 20
+max_limit: 100
+title: Cartpole as ProPS+ with Qwen2.5 3B Baseline

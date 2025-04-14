@@ -56,7 +56,7 @@ def get_local_client(model_path, base_model, model_type):
             torch_dtype = torch.bfloat16,
             device_map = "auto",
         )
-        _model.resize_token_embeddings(len(tokenizer))
+        #_model.resize_token_embeddings(len(tokenizer))
         model = PeftModel.from_pretrained(
             model=_model,
             model_id = model_path,
@@ -74,7 +74,7 @@ def query_local_llm(_model, _tokenizer, conversations):
     inputs = _tokenizer(prompt, return_tensors = "pt").to(_model.device)
 
     with torch.no_grad():
-        output_ids = _model.generate(**inputs, max_new_tokens = 128)
+        output_ids = _model.generate(**inputs, max_new_tokens = 256)
 
     generated_text = _tokenizer.decode(output_ids[0], skip_special_tokens=True)
     #generated_text.replace(prompt, "")

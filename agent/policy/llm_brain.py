@@ -34,7 +34,7 @@ class LLMBrain:
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
         self.token_limit = 4096
-        self.matrix_size = 0
+        self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
         self.SYSTEM_ACCOUNT = "system"
@@ -309,3 +309,120 @@ class LLMBrain:
                     is_updated = True
 
         return is_updated
+
+
+class LLMBrainStandardized(LLMBrain):
+    def __init__(
+            self,
+            llm_si_template: Template,
+            llm_output_conversion_template: Template,
+            llm_model_name: str,
+            llm_ui_template: Template = None,
+            model_type="",
+            base_model="",
+            env_description = "",
+            num_episodes = 400,
+    ):
+        super().__init__(
+            llm_si_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            llm_ui_template,
+            model_type,
+            base_model,
+        )
+        self.env_description = env_description
+        self.num_episodes = num_episodes
+
+    def str_episode_reward(self, replay_buffer, n):
+        all_parameters = []
+        for weights, reward in replay_buffer.buffer:
+            parameters = weights
+            all_parameters.append((parameters.reshape(-1), reward))
+
+        text = ""
+        for parameters, reward in all_parameters:
+            l = ""
+            for i in range(n):
+                l += f"params[{i}]: {parameters[i]:.5g}; "
+            fxy = reward
+            l += f"f(params): {fxy:.2f}\n"
+            text += l
+        return text
+
+    def llm_update_linear_policy(
+            self,
+            episode_reward_buffer,
+            step_number,
+            rank=None,
+            optimum=None,
+            search_step_size=0.1,
+    ):
+        self.rank = rank
+        self.reset_llm_conversation()
+        text = self.str_episode_reward(episode_reward_buffer, rank)
+        system_prompt = self.llm_si_template.render(
+            {
+                "episode_reward_buffer_string": str(text),
+                "step_number": str(step_number),
+                "rank": rank,
+                "optimum": str(optimum),
+                "step_size": str(search_step_size),
+                "env_description": self.env_description,
+                "episodes": self.num_episodes
+            }
+        )
+
+        self.add_llm_conversation(system_prompt, "user")
+        new_parameters_with_reasoning = self.query_llm()
+        new_parameters_list = self.parse_parameters_local(new_parameters_with_reasoning)
+        # print(system_prompt)
+
+        # self.add_llm_conversation(new_parameters_with_reasoning, "assistant")
+        # self.add_llm_conversation(
+        #     self.llm_output_conversion_template.render(),
+        #     "user",
+        # )
+        # new_parameters = self.query_llm()
+        trial = 0
+        while trial < 3 and len(new_parameters_list) != self.rank:
+            print("Could not parse matrix once, trying again", trial, new_parameters_list)
+            update_query = self.llm_output_conversion_template.render(
+                {"rank": rank}
+            )
+            self.add_llm_conversation(
+                update_query,
+                "user"
+            )
+            response = self.query_llm()
+            print(response)
+            new_parameters_list = self.parse_parameters_local(response)
+            trial += 1
+
+        return (
+            new_parameters_list,
+            "system:\n"
+            + system_prompt
+            + "\n\n\nLLM:\n"
+            + new_parameters_with_reasoning
+        )
+
+
+    def parse_parameters_local(self, response):
+        # This regex looks for integers or floating-point numbers (including optional sign)
+        response_array = response.split("\n")
+        print("response:", response_array)
+        pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
+        results = []
+
+        for r in response_array:
+            matches = pattern.findall(r)
+            # Convert matched strings to float (or int if you prefer to differentiate)
+            results = []
+            if len(matches) == self.rank:
+                for match in matches:
+                    results.append(float(match[1]))
+                break
+
+        print(results)
+        return np.array(results).reshape(-1)

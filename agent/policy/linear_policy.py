@@ -20,8 +20,9 @@ class LinearPolicy(Policy):
 
 
     def initialize_policy_with_weights(self, weight):
-        self.weight = np.array(weight[:-1])
-        self.bias = np.array(weight[-1])
+        self.weight = np.array([np.array(weight[:-1])]).T
+        self.bias = np.array([np.array([weight[-1]])])
+        print("with weights", self.weight, self.bias, self.weight.shape, self.bias.shape)
 
     def initialize_policy(self):
         #self.weight = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
@@ -30,6 +31,7 @@ class LinearPolicy(Policy):
         self.bias = np.random.uniform(-3.5, 3.5, (1, self.dim_actions))
         self.weight = np.round(self.weight, decimals = 4)
         self.bias = np.round(self.bias, decimals = 4)
+        print("direct", self.weight, self.bias, self.weight.shape, self.bias.shape)
 
 
     def get_action(self, state):
@@ -61,12 +63,18 @@ class LinearPolicy(Policy):
         try:
             if weight_and_bias_list is None:
                 return
+            weight_and_bias_list = np.array(weight_and_bias_list).reshape(self.dim_states + 1, self.dim_actions)
             self.weight = np.array(weight_and_bias_list[:-1])
             self.bias = np.expand_dims(np.array(weight_and_bias_list[-1]), axis=0)
         except Exception as e:
             print("Updating policy error", e)
             self.weight = copy_weight
             self.bias = copy_bias
+
+
+    def get_parameters(self):
+        parameters = np.concatenate((self.weight, self.bias), axis=0)
+        return parameters
 
 
 class LinearContinuousActionPolicy(LinearPolicy):

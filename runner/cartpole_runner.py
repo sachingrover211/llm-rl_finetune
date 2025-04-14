@@ -13,9 +13,6 @@ def run_training_loop(
     num_episodes,
     gym_env_name,
     render_mode,
-    continuous,
-    num_position_bins,
-    num_theta_bins,
     logdir,
     actions,
     states,
@@ -26,10 +23,15 @@ def run_training_loop(
     llm_ui_template_name,
     llm_output_conversion_template_name,
     llm_model_name,
+    env_desc_file,
+    model_type,
+    base_model,
     num_evaluation_episodes,
-    record_video,
-    use_replay_buffer,
+    step_size,
     reset_llm_conversation,
+    print_episode,
+    max_limit,
+    title,
 ):
     assert task == "cartpole"
 
@@ -49,45 +51,26 @@ def run_training_loop(
 
         world = CartpoleWorld(
             render_mode,
-            continuous,
-            num_position_bins,
-            num_theta_bins,
         )
 
-        if continuous:
-            agent = ContinuousCartpoleAgent(
-                logdir,
-                actions,
-                states,
-                max_traj_count,
-                max_traj_length,
-                llm_si_template,
-                llm_ui_template,
-                llm_output_conversion_template,
-                llm_model_name,
-                num_evaluation_episodes,
-                record_video,
-                use_replay_buffer,
-                reset_llm_conversation
-            )
-        else:
-            agent = CartpoleAgent(
-                logdir,
-                actions,
-                states,
-                num_position_bins,
-                num_theta_bins,
-                max_traj_count,
-                max_traj_length,
-                llm_si_template,
-                llm_ui_template,
-                llm_output_conversion_template,
-                llm_model_name,
-                num_evaluation_episodes,
-                record_video,
-                use_replay_buffer,
-                reset_llm_conversation
-            )
+        agent = ContinuousCartpoleAgent(
+            num_episodes,
+            logdir,
+            actions,
+            states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_ui_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            model_type,
+            base_model,
+            num_evaluation_episodes,
+            step_size,
+            reset_llm_conversation,
+            env_desc_file
+        )
 
         agent.initialize_policy(states, actions)
         curr_episode_dir = f"{logdir}/episode_initial"
@@ -99,11 +82,13 @@ def run_training_loop(
 
         results = agent.evaluate_policy(world, curr_episode_dir)
 
+        policies = list()
         avg = list()
         std = list()
         avg.append(np.average(results))
         std.append(np.std(results))
         agent.average_reward = avg[-1]
+        policies.append(str(agent.policy).replace('\n', ', '))
         for episode in range(num_episodes):
             print(f"Episode: {episode}")
             # create log dir
@@ -116,12 +101,20 @@ def run_training_loop(
             avg.append(np.average(results))
             std.append(np.std(results))
             agent.average_reward = avg[-1]
+            policies.append(str(agent.policy).replace('\n', ', '))
             print(results)
             print(f"Episode {episode} Evaluation Results: {avg[-1]}, {std[-1]}")
+            if episode > 0 and episode % print_episode == 0:
+                record_results(title, avg, std, logdir, max_limit)
+
+        with open(logdir + "/policies.txt", "w") as policy_file:
+            policy_file.write("\n".join(policies))
 
         print("Average", avg)
         print("Standard deviation", std)
-
-        plot_reward("Cartpole Trajectory No Context", avg, std, logdir, 500)
-        write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
         print(f"################# Experiment End {i}")
+        record_results(title, avg, std, logdir, max_limit)
+
+def record_results(graph_title, avg, std, logdir, max_limit = 500):
+    plot_reward(graph_title, avg, std, logdir, max_limit)
+    write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
