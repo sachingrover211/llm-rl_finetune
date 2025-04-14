@@ -74,7 +74,6 @@ class MountainCarContinuousWorld(BaseWorld):
 
     def step(self, action):
         self.steps += 1
-        action = action[0]
         state, reward, done, truncated, _ = self.env.step(action)
         self.accu_reward += reward
 

@@ -1,48 +1,51 @@
+import numpy as np
 from agent.policy.q import QTable
 from agent.policy.linear_policy import LinearPolicy
-from agent.policy.replay_buffer import ReplayBuffer
-from agent.policy.llm_brain import LLMBrain
+from agent.policy.replay_buffer import EpisodeRewardBufferNoBias
+from agent.policy.llm_brain import LLMBrainStandardized
 from world.cartpole import CartpoleWorld
 
 
 class CartpoleAgent:
     def __init__(
         self,
+        num_episodes,
         logdir,
         actions,
         states,
-        num_positions_bins,
         num_theta_bins,
+        num_podition_bins,
         max_traj_count,
         max_traj_length,
         llm_si_template,
         llm_ui_template,
         llm_output_conversion_template,
         llm_model_name,
+        model_type,
+        base_model,
         num_evaluation_episodes,
-        record_video = False,
-        use_replay_buffer = True,
+        step_size = 1.0,
         reset_llm_conversations = False,
+        env_desc_file = None
     ):
-        self.replay_buffer = None
-        if use_replay_buffer:
-            self.replay_buffer = ReplayBuffer(
-                max_traj_count=max_traj_count, max_traj_length=max_traj_length
-            )
+        self.replay_buffer = EpisodeRewardBufferNoBias(
+            max_size=max_traj_count
+        )
 
-        self.llm_brain = LLMBrain(
-            llm_si_template, llm_output_conversion_template, llm_model_name, llm_ui_template
+        self.llm_brain = LLMBrainStandardized(
+            llm_si_template, llm_output_conversion_template, llm_model_name, env_desc_file, model_type, base_model, env_desc_file, num_episodes
         )
         self.llm_brain.reset_llm_conversation()
 
         self.logdir = logdir
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
-        self.record_video = record_video
         self.replay_table_size = 100
         self.average_reward = 0
-        self.use_replay_buffer = use_replay_buffer
+        self.max_val = 500.0
+        self.step_size = step_size
         self.reset_llm_conversations = reset_llm_conversations
+        self.record = True
 
 
     def initialize_policy(self, states, actions):
@@ -50,29 +53,16 @@ class CartpoleAgent:
 
 
     def rollout_episode(self, world, logdir, logging_file, record_video = False):
-        if record_video:
-            state = world.reset_with_video(logdir, f"episode_{self.training_episodes}")
-            world.start_video_recorder()
-        else:
-            state = world.reset()
-
-        if self.use_replay_buffer:
-            self.replay_buffer.start_new_trajectory()
+        state = world.reset()
 
         logging_file.write(f"state | action | reward\n")
         done = False
         while not done:
             action = self.policy.get_action(state).argmax()
             next_state, reward, done = world.step(action, record_video)
-            if self.use_replay_buffer:
-                self.replay_buffer.add_step(state, action, reward)
             logging_file.write(f"{state} | {action} | {reward}\n")
             state = next_state
 
-        if record_video:
-            world.close_video_recorder()
-
-        world.close()
         return world.get_accu_reward()
 
     def train_policy(self, world, logdir):
@@ -104,8 +94,6 @@ class CartpoleAgent:
 
     def evaluate_policy(self, world, logdir):
         results = []
-        if self.use_replay_buffer:
-            self.replay_buffer.clear()
 
         for idx in range(self.num_evaluation_episodes):
             logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
@@ -113,12 +101,18 @@ class CartpoleAgent:
             result = self.rollout_episode(world, logdir, logging_file)
             results.append(result)
             logging_file.close()
+
+        if self.record:
+            self.replay_buffer.add(
+                self.policy.get_parameters(), np.mean(results)
+            )
         return results
 
 
 class ContinuousCartpoleAgent(CartpoleAgent):
     def __init__(
         self,
+        num_episodes,
         logdir,
         action_dims,
         state_dims,
@@ -128,22 +122,25 @@ class ContinuousCartpoleAgent(CartpoleAgent):
         llm_ui_template,
         llm_output_conversation_template,
         llm_model_name,
+        model_type,
+        base_model,
         num_evaluation_episodes,
-        record_video,
-        use_replay_buffer,
-        reset_llm_conversations
+        step_size,
+        reset_llm_conversations,
+        env_desc_file
     ):
-        super().__init__(logdir, action_dims, state_dims, 0, 0, \
+        super().__init__(num_episodes, logdir, action_dims, state_dims, 0, 0, \
                     max_traj_count, max_traj_length, \
                     llm_si_template, llm_ui_template, llm_output_conversation_template, \
-                    llm_model_name, num_evaluation_episodes, \
-                    record_video, use_replay_buffer, reset_llm_conversations)
+                    llm_model_name, model_type, base_model, num_evaluation_episodes, \
+                    step_size, reset_llm_conversations, env_desc_file)
 
 
     def initialize_policy(self, state, actions):
         self.policy = LinearPolicy(state, actions)
         self.policy.initialize_policy()
-        self.llm_brain.matrix_size = state + 1 # for the bias
+        self.llm_brain.matrix_size = (state + 1, actions) # for the bias
+        self.rank = (state + 1)*actions
 
 
     def train_policy(self, world, logdir = ""):
@@ -158,23 +155,13 @@ class ContinuousCartpoleAgent(CartpoleAgent):
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
 
-        replay_buffer_string = None
-        if self.use_replay_buffer:
-            index, samples = self.replay_buffer.sample_contiguous(self.replay_table_size)
-            replay_buffer_string = self.replay_buffer.print_trajectory(index, samples)
-
         # if we just want to track current conversation only
         if self.reset_llm_conversations:
             self.llm_brain.reset_llm_conversation()
 
-        if self.use_replay_buffer:
-            updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
-                self.policy, self.average_reward, replay_buffer_string
-            )
-        else:
-            updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
-                self.policy, self.average_reward, None
-            )
+        updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
+            self.replay_buffer, self.training_episodes + 1, self.rank, self.max_val, self.step_size
+        )
 
         # logging request
         request = [req[self.llm_brain.TEXT_KEY] for req in self.llm_brain.llm_conversation]

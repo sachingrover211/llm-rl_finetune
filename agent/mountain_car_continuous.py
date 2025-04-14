@@ -1,12 +1,14 @@
+import numpy as np
 from agent.policy.linear_policy import LinearPolicy
-from agent.policy.replay_buffer import ReplayBuffer
-from agent.policy.llm_brain import LLMBrain
+from agent.policy.replay_buffer import EpisodeRewardBufferNoBias
+from agent.policy.llm_brain import LLMBrainStandardized
 from world.mountain_car import MountainCarContinuousWorld
 
 
 class MountainCarContinuousAgent:
     def __init__(
         self,
+        num_episodes,
         logdir,
         actions,
         states,
@@ -19,29 +21,28 @@ class MountainCarContinuousAgent:
         model_type,
         base_model,
         num_evaluation_episodes,
-        record_video = False,
-        use_replay_buffer = True,
+        step_size = 1.0,
         reset_llm_conversations = False,
+        env_desc_file = None
     ):
-        self.replay_buffer = None
-        if use_replay_buffer:
-            self.replay_buffer = ReplayBuffer(
-                max_traj_count=max_traj_count, max_traj_length=max_traj_length
-            )
+        self.replay_buffer = EpisodeRewardBufferNoBias(
+            max_size=num_episodes
+        )
 
-        self.llm_brain = LLMBrain(
-            llm_si_template, llm_output_conversion_template, llm_model_name, llm_ui_template, model_type, base_model
+        self.llm_brain = LLMBrainStandardized(
+            llm_si_template, llm_output_conversion_template, llm_model_name, env_desc_file, model_type, base_model, env_desc_file, num_episodes
         )
         self.llm_brain.reset_llm_conversation()
 
         self.logdir = logdir
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
-        self.record_video = record_video
         self.replay_table_size = max_traj_length
         self.average_reward = 0
-        self.use_replay_buffer = use_replay_buffer
         self.reset_llm_conversations = reset_llm_conversations
+        self.max_val = 100.0
+        self.step_size = step_size
+        self.record = True
 
 
     def initialize_policy(self, states, actions):
@@ -52,27 +53,21 @@ class MountainCarContinuousAgent:
         # the matrix is provided as 1, 3 instead of 3, 1.
         #self.llm_brain.matrix_size = (actions, states + 1) # +1 for the bias
         self.llm_brain.create_regex()
+        self.rank = (states + 1)*actions
 
 
-    def rollout_episode(self, world, logdir, logging_file, record_video = False):
-        if record_video:
-            world.render_mode = "rgb_array"
-
+    def rollout_episode(self, world, logdir, logging_file):
         state = world.reset()
-
-        if self.use_replay_buffer:
-            self.replay_buffer.start_new_trajectory()
+        #self.replay_buffer.start_new_trajectory()
 
         logging_file.write(f"state | action | reward\n")
         done = False
         while not done:
             action = self.policy.get_action(state)
             next_state, reward, done = world.step(action)
-            if self.use_replay_buffer:
-                self.replay_buffer.add_step(state, action, reward)
             logging_file.write(f"{state} | {action} | {reward}\n")
             state = next_state
-        
+
         return world.get_accu_reward()
 
 
@@ -88,41 +83,13 @@ class MountainCarContinuousAgent:
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
 
-        replay_buffer_string = None
-        if self.use_replay_buffer:
-            index, samples = self.replay_buffer.sample_contiguous(self.replay_table_size)
-            replay_buffer_string = self.replay_buffer.print_trajectory(index, samples)
-
         # if we just want to track current conversation only
         if self.reset_llm_conversations:
             self.llm_brain.reset_llm_conversation()
 
-        if self.use_replay_buffer:
-            updated_matrix = []
-            trials = 0
-            # setting up an external loop to ensure that updated matrix works and it does not crash
-            # total 12 attempts with complete reset three times should be able to do it.
-            while trials < 3 and len(updated_matrix) != self.llm_brain.matrix_size[0]:
-                updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
-                    self.policy, self.average_reward, replay_buffer_string
-                )
-                trials += 1
-                if len(updated_matrix) != self.llm_brain.matrix_size[0]:
-                    # resetting to previous episode and trying again.
-                    print("will have to try again", updated_matrix)
-                    self.llm_brain.remove_llm_conversation[-1]
-        else:
-            updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
-                self.policy, self.average_reward, None
-            )
-
-        # logging request
-        request = [req[self.llm_brain.TEXT_KEY] for req in self.llm_brain.llm_conversation]
-        request = "\n#################\n".join(request)
-        logging_request_filename = f"{logdir}/request.txt"
-        with open(logging_request_filename, "w") as f:
-            f.write(request)
-
+        updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
+            self.replay_buffer, self.training_episodes +1, self.rank, self.max_val, self.step_size
+        )
         # logging updated_matrix value
         self.policy.update_policy(updated_matrix)
         logging_matrix_filename = f"{logdir}/matrix.txt"
@@ -143,8 +110,6 @@ class MountainCarContinuousAgent:
 
     def evaluate_policy(self, world, logdir):
         results = []
-        if self.use_replay_buffer:
-            self.replay_buffer.clear()
 
         for idx in range(self.num_evaluation_episodes):
             logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
@@ -152,6 +117,12 @@ class MountainCarContinuousAgent:
             result = self.rollout_episode(world, logdir, logging_file)
             results.append(result)
             logging_file.close()
+
+        if self.record:
+            self.replay_buffer.add(
+                self.policy.get_parameters(), np.mean(results)
+            )
+
         return results
 
 

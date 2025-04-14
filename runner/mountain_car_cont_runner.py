@@ -23,17 +23,22 @@ def run_training_loop(
     llm_ui_template_name,
     llm_output_conversion_template_name,
     llm_model_name,
+    env_desc_file,
     model_type,
     base_model,
     num_evaluation_episodes,
-    record_video,
-    use_replay_buffer,
+    step_size,
     reset_llm_conversation,
     print_episode,
     max_limit,
+    title,
 ):
     if render_mode == "None":
         render_mode = None
+
+    if env_desc_file == "None":
+        env_desc_file = None
+
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
     llm_si_template = jinja2_env.get_template(llm_si_template_name)
     llm_output_conversion_template = jinja2_env.get_template(
@@ -54,6 +59,7 @@ def run_training_loop(
         )
 
         agent = MountainCarContinuousAgent(
+            num_episodes,
             logdir,
             actions,
             states,
@@ -66,9 +72,9 @@ def run_training_loop(
             model_type,
             base_model,
             num_evaluation_episodes,
-            record_video,
-            use_replay_buffer,
-            reset_llm_conversation
+            step_size,
+            reset_llm_conversation,
+            env_desc_file
         )
 
         agent.initialize_policy(states, actions)
@@ -104,7 +110,7 @@ def run_training_loop(
             print(results)
             print(f"Episode {episode} Evaluation Results: {avg[-1]}, {std[-1]}")
             if episode > 0 and episode % print_episode == 0:
-                record_results(avg, std, logdir, max_limit)
+                record_results(title, avg, std, logdir, max_limit)
 
         with open(logdir+"/policies.txt", "w") as policy_file:
             policy_file.write("\n".join(policies))
@@ -112,8 +118,8 @@ def run_training_loop(
         print("Average", avg)
         print("Standard deviation", std)
         print(f"################# Experiment End {i}")
-        record_results(avg, std, logdir, max_limit)
+        record_results(title, avg, std, logdir, max_limit)
 
-def record_results(avg, std, logdir, max_limit = 100):
-    plot_reward("Mountain Car Fine-Tuning", avg, std, logdir, max_limit)
+def record_results(graph_titleavg, std, logdir, max_limit = 100):
+    plot_reward(graph_title, avg, std, logdir, max_limit)
     write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
