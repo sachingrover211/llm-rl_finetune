@@ -91,7 +91,7 @@ def create_dataset(world, agent, logdir):
         # updating the template to specific w0 w1 and b directly added to the format
         episode_replay_string = f"params[0]: {np.round(row['w0'], decimals=1)}; " + \
             f"params[1]: {np.round(row['w1'], decimals=1)}; " + \
-            f"params[2]: {np.round(row['b'], decimals=1)}" + \
+            f"params[2]: {np.round(row['b'], decimals=1)}; " + \
             f"f(params): {np.round(row['evaluation'], decimals = 2)}"
         prompts.append(llm_template.render({
             "rank": RANK,
@@ -102,11 +102,12 @@ def create_dataset(world, agent, logdir):
             "step_size": STEP_SIZE,
         }))
 
-
+    print("Creating Test and Train Dataset with prompts")
     data['prompt'] = prompts
     ds = Dataset.from_pandas(data)
 
     print(ds)
+    print(ds[0])
     train_test = ds.train_test_split(test_size = 0.2)
     #test_val = train_test["test"].train_test_split(test_size=0.5)
 
@@ -223,6 +224,7 @@ def run():
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
         #device_map="auto",
+        #torch_dtype=torch.bfloat16,
         torch_dtype=torch.float16,
     )
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
