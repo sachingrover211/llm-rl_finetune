@@ -20,7 +20,7 @@ module load cuda-12.4.1-gcc-12.1.0 nccl-2.22.3-1-gcc-12.1.0
 
 export SCRATCH="/scratch/sgrover6"
 export CODE_HOME="/home/sgrover6/src/llm-q"
-export LOGGING=$CODE_HOME"/logs/finetune/qwen2.5_7B_5_epoch"
+export LOGGING=$CODE_HOME"/logs/finetune/qwen2.5_14B_5_epoch"
 export HF_HOME="$SCRATCH/.cache/huggingface/hub/"
 export FORCE_TORCHRUN=1
 
