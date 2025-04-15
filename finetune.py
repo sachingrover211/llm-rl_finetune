@@ -18,9 +18,9 @@ if torch.cuda.is_available():
 
 RANK = 3
 STEP_SIZE = 1.0
-MODEL_ID = "Qwen/Qwen2.5-3B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
 #MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
-DATA_POINTS = 4000
+DATA_POINTS = 2000
 RL_SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The User is looking for a linear control policy "
     "for the continuous Mountain Car Domain. Assistant first thinks about the reasoning process "
@@ -28,7 +28,7 @@ RL_SYSTEM_PROMPT = (
     "are enclosed within the <think> </think> and <policy> </policy> tags respectively, i.e. "
     "<think> reasoning process here </think><policy> policy here </policy>"
 )
-LOGDIR = "logs/finetune/test"
+LOGDIR = "logs/finetune/qwen2.5_7B_numeric_cont_mc"
 TEMPLATE_DIR = "agent/policy/templates"
 #TEMPLATE = "mountaincar_cont_si.j2"
 TEMPLATE = "numeric_optimization_3_params.j2"
@@ -149,7 +149,7 @@ def format_hard_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
     """ takes policy structure into account """
     pattern = r"^<think>.*?</think>\s*<policy>params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)(,;\s)*params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)(,;\s)*params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)</policy>$"
-    print("in hard reward", kwargs.keys(), len(completions), completions[0][0].keys())
+    #print("in hard reward", kwargs.keys(), len(completions), completions[0][0].keys())
     completion_contents = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content) for content in completion_contents]
     rewards_list = [1.0 if match else 0.0 for match in matches]
@@ -224,9 +224,9 @@ def run():
     print("setting up model")
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
-        #device_map="auto",
+        device_map="auto",
         #torch_dtype=torch.bfloat16,
-        torch_dtype=torch.float16,
+        torch_dtype=torch.bfloat16,
     )
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
     #model.resize_token_embeddings(len(tokenizer))

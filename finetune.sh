@@ -2,7 +2,7 @@
 
 #SBATCH -N 1           # number of nodes
 #SBATCH -c 4
-#SBATCH -t 2-00:00:00   # time in d-hh:mm:ss
+#SBATCH -t 4-00:00:00   # time in d-hh:mm:ss
 #SBATCH -G a100:1
 #SBATCH --mem 80G
 #SBATCH -p general
@@ -20,7 +20,7 @@ module load cuda-12.4.1-gcc-12.1.0 nccl-2.22.3-1-gcc-12.1.0
 
 export SCRATCH="/scratch/sgrover6"
 export CODE_HOME="/home/sgrover6/src/llm-q"
-export LOGGING=$CODE_HOME"/logs/finetune/qwen2.5_3B_5_epoch"
+export LOGGING=$CODE_HOME"/logs/finetune/qwen2.5_7B_5_epoch"
 export HF_HOME="$SCRATCH/.cache/huggingface/hub/"
 export FORCE_TORCHRUN=1
 
