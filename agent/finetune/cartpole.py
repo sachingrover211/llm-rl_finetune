@@ -1,7 +1,7 @@
 from agent.finetune.base_agent import BaseFinetuneAgent
 
 
-class MountainCarFinetuneAgent(BaseFinetuneAgent):
+class CartpoleFinetuneAgent(BaseFinetuneAgent):
     def __init__(
         self,
         actions,
