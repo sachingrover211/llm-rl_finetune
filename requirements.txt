@@ -4,7 +4,9 @@ scipy
 matplotlib
 jinja2
 pyyaml
-gymnasium[all]
+gymnasium[classic-control]
+gymnasium[mujoco]
+pygame
 tiktoken
 google-generativeai
 tensorboard

@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from runner import mountain_car_runner, pendulum_runner, blackjack_runner, cartpole_runner, frozen_lake_runner, hopper_runner, mountain_car_cont_runner
+from runner import mountain_car_runner, pendulum_runner, blackjack_runner, cartpole_runner, frozen_lake_runner, hopper_runner, mountain_car_cont_runner, inv_pendulum_runner, pong_runner
 
 
 def main():
@@ -30,6 +30,10 @@ def main():
         hopper_runner.run_training_loop(**config)
     elif config["task"] == "mc_continuous":
         mountain_car_cont_runner.run_training_loop(**config)
+    elif config["task"] == "inverted_pendulum":
+        inv_pendulum_runner.run_training_loop(**config)
+    elif config["task"] == "pong":
+        pong_runner.run_training_loop(**config)
     else:
         msg = f"Task {config['task']} not recognized."
         raise ValueError(msg)

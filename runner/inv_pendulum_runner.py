@@ -1,5 +1,5 @@
-from world.cartpole import CartpoleWorld
-from agent.cartpole import CartpoleAgent, ContinuousCartpoleAgent
+from world.inverted_pendulum import IPWorld
+from agent.inverted_pendulum import IPAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 import numpy as np
@@ -33,7 +33,7 @@ def run_training_loop(
     max_limit,
     title,
 ):
-    assert task == "cartpole"
+    assert task == "inverted_pendulum"
 
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
     llm_si_template = jinja2_env.get_template(llm_si_template_name)
@@ -49,11 +49,11 @@ def run_training_loop(
         print(f"################# Experiment Started {i}")
         logdir = f"{root_folder}/experiment_{i}"
 
-        world = CartpoleWorld(
+        world = IPWorld(
             render_mode,
         )
 
-        agent = ContinuousCartpoleAgent(
+        agent = IPAgent(
             num_episodes,
             logdir,
             actions,
@@ -115,7 +115,6 @@ def run_training_loop(
         print(f"################# Experiment End {i}")
         record_results(title, avg, std, logdir, max_limit)
         agent.llm_brain.delete_model()
-
 
 def record_results(graph_title, avg, std, logdir, max_limit = 500):
     plot_reward(graph_title, avg, std, logdir, max_limit)

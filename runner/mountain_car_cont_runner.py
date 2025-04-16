@@ -119,6 +119,8 @@ def run_training_loop(
         print("Standard deviation", std)
         print(f"################# Experiment End {i}")
         record_results(title, avg, std, logdir, max_limit)
+        agent.llm_brain.delete_model()
+
 
 def record_results(graph_titleavg, std, logdir, max_limit = 100):
     plot_reward(graph_title, avg, std, logdir, max_limit)

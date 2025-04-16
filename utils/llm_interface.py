@@ -2,7 +2,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 from openai import OpenAI
 import google.generativeai as genai
-import time, torch
+import time, torch, gc
 
 
 def get_client(model_type, model_name):
@@ -104,3 +104,9 @@ def query_local_llm(_model, _tokenizer, conversations):
     generated_text = generated_text.strip()
     return generated_text
 
+
+def delete_local_model(model):
+    model.cpu()
+    del model
+    torch.cuda.empty_cache()
+    gc.collect()

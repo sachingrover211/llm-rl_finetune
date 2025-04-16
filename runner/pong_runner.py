@@ -1,5 +1,5 @@
-from world.cartpole import CartpoleWorld
-from agent.cartpole import CartpoleAgent, ContinuousCartpoleAgent
+from world.pong import PongWorld
+from agent.pong import PongAgent
 from jinja2 import Environment, FileSystemLoader
 import os
 import numpy as np
@@ -33,7 +33,7 @@ def run_training_loop(
     max_limit,
     title,
 ):
-    assert task == "cartpole"
+    assert task == "pong"
 
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
     llm_si_template = jinja2_env.get_template(llm_si_template_name)
@@ -49,11 +49,11 @@ def run_training_loop(
         print(f"################# Experiment Started {i}")
         logdir = f"{root_folder}/experiment_{i}"
 
-        world = CartpoleWorld(
+        world = PongWorld(
             render_mode,
         )
 
-        agent = ContinuousCartpoleAgent(
+        agent = PongAgent(
             num_episodes,
             logdir,
             actions,
