@@ -33,7 +33,7 @@ class LLMBrain:
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 4096
+        self.token_limit = 8192
         self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
@@ -77,7 +77,8 @@ class LLMBrain:
     def query_llm(self):
         while self.tokens > self.token_limit:
             # keeping the system prompt and never removing that.
-            self.remove_llm_conversation(1)
+            if len(self.llm_conversation) > 1:
+                self.remove_llm_conversation(1)
 
         if self.model_type in ["HF", "OFFLINE"]:
             response = query_local_llm(self.model, self.tokenizer, self.llm_conversation)
@@ -85,6 +86,11 @@ class LLMBrain:
             response = query_llm(self.client, self.llm_model_name, self.llm_conversation)
 
         return response
+
+
+    def delete_model(self):
+        if self.model_type == ["HF", "OFFLINE"]:
+            remove_local_llm(self.model)
 
 
     def parse_q_table(self, q_table_string):
