@@ -33,7 +33,7 @@ class LLMBrain:
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 8192
+        self.token_limit = 16384
         self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
@@ -422,7 +422,7 @@ class LLMBrainStandardized(LLMBrain):
         results = []
 
         is_policy_updated = False
-        for r in response_array[::-1]:
+        for r in response_array:
             matches = pattern.findall(r)
             # Convert matched strings to float (or int if you prefer to differentiate)
             results = []
