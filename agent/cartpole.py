@@ -141,6 +141,7 @@ class ContinuousCartpoleAgent(CartpoleAgent):
         self.policy.initialize_policy()
         self.llm_brain.matrix_size = (state + 1, actions) # for the bias
         self.rank = (state + 1)*actions
+        self.llm_brain.policy = self.policy
 
 
     def train_policy(self, world, logdir = ""):
@@ -154,6 +155,7 @@ class ContinuousCartpoleAgent(CartpoleAgent):
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
+        self.llm_brain.policy = self.policy
 
         # if we just want to track current conversation only
         if self.reset_llm_conversations:

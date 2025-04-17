@@ -306,7 +306,7 @@ class LLMBrain:
             for j in range(self.matrix_size[1]):
                 if str(new_policy[i][j]) in str(reward):
                     return False
-                val = old_policy.get(i, j)
+                val = old_policy.get_weight_for_matirix(i, j)
 
                 if not val:
                     print("None returned from policy get")
@@ -421,14 +421,22 @@ class LLMBrainStandardized(LLMBrain):
         pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
         results = []
 
-        for r in response_array:
+        is_policy_updated = False
+        for r in response_array[::-1]:
             matches = pattern.findall(r)
             # Convert matched strings to float (or int if you prefer to differentiate)
             results = []
             if len(matches) == self.rank:
                 for match in matches:
                     results.append(float(match[1]))
-                break
+
+                for i, result in enumerate(results):
+                    if result != self.policy.get_weight_for_list(i):
+                        is_policy_updated = True
+                        break
+
+                if is_policy_updated:
+                    break
 
         print(results)
         return np.array(results).reshape(-1)

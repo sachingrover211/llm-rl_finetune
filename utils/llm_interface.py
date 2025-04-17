@@ -74,7 +74,7 @@ def query_local_llm(_model, _tokenizer, conversations):
     inputs = _tokenizer(prompt, return_tensors = "pt").to(_model.device)
 
     with torch.no_grad():
-        output_ids = _model.generate(**inputs, max_new_tokens = 256)
+        output_ids = _model.generate(**inputs, max_new_tokens = 384)
 
     generated_text = _tokenizer.decode(output_ids[0], skip_special_tokens=True)
     #generated_text.replace(prompt, "")

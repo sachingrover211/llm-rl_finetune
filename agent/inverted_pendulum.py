@@ -54,6 +54,7 @@ class IPAgent:
         #self.llm_brain.matrix_size = (actions, states + 1) # +1 for the bias
         self.llm_brain.create_regex()
         self.rank = (states + 1)*actions
+        self.llm_brain.policy = self.policy
 
 
     def rollout_episode(self, world, logdir, logging_file):
@@ -82,6 +83,7 @@ class IPAgent:
 
         # Update the policy using llm_brain, q_table and replay_buffer
         print("Updating the policy...")
+        self.llm_brain.policy = self.policy
 
         # if we just want to track current conversation only
         if self.reset_llm_conversations:
