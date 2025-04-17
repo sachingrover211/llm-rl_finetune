@@ -33,7 +33,7 @@ class LLMBrain:
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 8192
+        self.token_limit = 16384
         self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
@@ -306,7 +306,7 @@ class LLMBrain:
             for j in range(self.matrix_size[1]):
                 if str(new_policy[i][j]) in str(reward):
                     return False
-                val = old_policy.get(i, j)
+                val = old_policy.get_weight_for_matirix(i, j)
 
                 if not val:
                     print("None returned from policy get")
@@ -421,6 +421,7 @@ class LLMBrainStandardized(LLMBrain):
         pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
         results = []
 
+        is_policy_updated = False
         for r in response_array:
             matches = pattern.findall(r)
             # Convert matched strings to float (or int if you prefer to differentiate)
@@ -428,7 +429,14 @@ class LLMBrainStandardized(LLMBrain):
             if len(matches) == self.rank:
                 for match in matches:
                     results.append(float(match[1]))
-                break
+
+                for i, result in enumerate(results):
+                    if result != self.policy.get_weight_for_list(i):
+                        is_policy_updated = True
+                        break
+
+                if is_policy_updated:
+                    break
 
         print(results)
         return np.array(results).reshape(-1)

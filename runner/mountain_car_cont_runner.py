@@ -122,6 +122,6 @@ def run_training_loop(
         agent.llm_brain.delete_model()
 
 
-def record_results(graph_titleavg, std, logdir, max_limit = 100):
+def record_results(graph_title, avg, std, logdir, max_limit = 100):
     plot_reward(graph_title, avg, std, logdir, max_limit)
     write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])

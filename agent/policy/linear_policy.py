@@ -8,7 +8,21 @@ class LinearPolicy(Policy):
         self.dim_states = dim_states
         self.dim_actions = dim_actions
 
-    def get(self, si, ai):
+
+    def get_weight_for_list(self, index):
+        if index > (self.dim_states + 1)*self.dim_actions:
+            return None
+
+        si = index
+        ai = 0
+        if self.dim_actions > 1:
+            si = int(index / self.dim_actions)
+            ai = index % self.dim_actions
+
+        return self.get_weight_for_matrix(si, ai)
+
+
+    def get_weight_for_matrix(self, si, ai):
         if si > self.dim_states or ai >= self.dim_actions:
             return None
 
