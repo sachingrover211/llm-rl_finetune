@@ -8,4 +8,4 @@ class IPFinetuneAgent(BaseFinetuneAgent):
         states,
         num_evaluation_episodes,
     ):
-        super().__init__(actions, states, num_evaluations_episodes)
+        super().__init__(actions, states, num_evaluation_episodes)
