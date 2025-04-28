@@ -75,6 +75,7 @@ class LLMBrain:
 
 
     def query_llm(self):
+        response = ""
         while self.tokens > self.token_limit:
             # keeping the system prompt and never removing that.
             if len(self.llm_conversation) > 1:
@@ -151,7 +152,7 @@ class LLMBrain:
 
     def llm_update_linear_policy(self, linear_policy, average_reward, replay_buffer = None):
         #self.reset_llm_conversation()
-
+        call_time = time.time()
         repeated_template = self.llm_ui_template if self.llm_ui_template else self.llm_si_template
 
         if self.is_first_query and repeated_template == self.llm_ui_template:
@@ -224,7 +225,8 @@ class LLMBrain:
 
         print("updated_matrix", updated_matrix)
         self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
-        return updated_matrix, matrix_response_with_reasoning
+        run_time = time.time() - call_time
+        return updated_matrix, matrix_response_with_reasoning, run_time
 
 
     def parse_parameters(self, parameters_string):
@@ -364,6 +366,7 @@ class LLMBrainStandardized(LLMBrain):
             optimum=None,
             search_step_size=0.1,
     ):
+        call_time = time.time()
         self.rank = rank
         self.reset_llm_conversation()
         text = self.str_episode_reward(episode_reward_buffer, rank)
@@ -405,12 +408,15 @@ class LLMBrainStandardized(LLMBrain):
             new_parameters_list = self.parse_parameters_local(response)
             trial += 1
 
+        run_time = time.time() - call_time
+
         return (
             new_parameters_list,
             "system:\n"
             + system_prompt
             + "\n\n\nLLM:\n"
-            + new_parameters_with_reasoning
+            + new_parameters_with_reasoning,
+            run_time
         )
 
 

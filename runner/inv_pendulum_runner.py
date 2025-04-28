@@ -45,6 +45,7 @@ def run_training_loop(
         llm_ui_template = jinja2_env.get_template(llm_ui_template_name)
 
     root_folder = logdir
+    col_titles = ["Average reward", "Standard deviation", "LLM Call Time", "Evaluation Time"]
     for i in range(experiments):
         print(f"################# Experiment Started {i}")
         logdir = f"{root_folder}/experiment_{i}"
@@ -87,6 +88,8 @@ def run_training_loop(
         std = list()
         avg.append(np.average(results))
         std.append(np.std(results))
+        llm_call_times = [0.0]
+        eval_times = [0.0]
         agent.average_reward = avg[-1]
         policies.append(str(agent.policy).replace('\n', ', '))
         for episode in range(num_episodes):
@@ -97,15 +100,18 @@ def run_training_loop(
             os.makedirs(curr_episode_dir, exist_ok=True)
             agent.train_policy(world, curr_episode_dir)
             print(f"New Matrix: {str(agent.policy)}")
-            results = agent.evaluate_policy(world, curr_episode_dir)
+            results, etime = agent.evaluate_policy(world, curr_episode_dir)
             avg.append(np.average(results))
             std.append(np.std(results))
+            llm_call_times.append(agent.run_time)
+            eval_times.append(etime)
             agent.average_reward = avg[-1]
             policies.append(str(agent.policy).replace('\n', ', '))
             print(results)
             print(f"Episode {episode} Evaluation Results: {avg[-1]}, {std[-1]}")
             if episode > 0 and episode % print_episode == 0:
-                record_results(title, avg, std, logdir, max_limit)
+                cols = [avg, std, llm_call_times, eval_times]
+                record_results(title, col_titles, cols, logdir, max_limit)
 
         with open(logdir + "/policies.txt", "w") as policy_file:
             policy_file.write("\n".join(policies))
@@ -113,9 +119,10 @@ def run_training_loop(
         print("Average", avg)
         print("Standard deviation", std)
         print(f"################# Experiment End {i}")
-        record_results(title, avg, std, logdir, max_limit)
+        cols = [avg, std, llm_call_times, eval_times]
+        record_results(title, col_titles, cols, logdir, max_limit)
         agent.llm_brain.delete_model()
 
-def record_results(graph_title, avg, std, logdir, max_limit = 500):
-    plot_reward(graph_title, avg, std, logdir, max_limit)
-    write_to_file(logdir, ["Average reward", "Standard deviation"], [avg, std])
+def record_results(graph_title, col_titles, cols, logdir, max_limit = 500):
+    plot_reward(graph_title, cols[0], cols[1], logdir, max_limit)
+    write_to_file(logdir, col_titles, cols)

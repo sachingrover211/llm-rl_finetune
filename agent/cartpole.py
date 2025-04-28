@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from agent.policy.q import QTable
 from agent.policy.linear_policy import LinearPolicy
@@ -46,6 +47,7 @@ class CartpoleAgent:
         self.step_size = step_size
         self.reset_llm_conversations = reset_llm_conversations
         self.record = True
+        self.run_time = 0.0
 
 
     def initialize_policy(self, states, actions):
@@ -94,6 +96,7 @@ class CartpoleAgent:
 
     def evaluate_policy(self, world, logdir):
         results = []
+        eval_start_time = time.time()
 
         for idx in range(self.num_evaluation_episodes):
             logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
@@ -106,6 +109,8 @@ class CartpoleAgent:
             self.replay_buffer.add(
                 self.policy.get_parameters(), np.mean(results)
             )
+
+        eval_time = time.time() - eval_start_time
         return results
 
 
@@ -161,7 +166,7 @@ class ContinuousCartpoleAgent(CartpoleAgent):
         if self.reset_llm_conversations:
             self.llm_brain.reset_llm_conversation()
 
-        updated_matrix, reasoning = self.llm_brain.llm_update_linear_policy(
+        updated_matrix, reasoning, self.run_time = self.llm_brain.llm_update_linear_policy(
             self.replay_buffer, self.training_episodes + 1, self.rank, self.max_val, self.step_size
         )
 
@@ -176,7 +181,7 @@ class ContinuousCartpoleAgent(CartpoleAgent):
         self.policy.update_policy(updated_matrix)
         logging_matrix_filename = f"{logdir}/matrix.txt"
         logging_matrix_file = open(logging_matrix_filename, "w")
-        logging_matrix_file.write(str(self.policy))
+        logging_matrix_file.write(str(self.policy) + "\n\nLLM runtime: "+ str(self.run_time))
         logging_matrix_file.close()
 
         # logging the response from the llm
