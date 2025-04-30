@@ -81,7 +81,7 @@ def run_training_loop(
         with open(matrix_file, "w") as f:
             f.write(str(agent.policy))
 
-        results = agent.evaluate_policy(world, curr_episode_dir)
+        results, etime = agent.evaluate_policy(world, curr_episode_dir)
 
         policies = list()
         avg = list()
@@ -89,7 +89,7 @@ def run_training_loop(
         avg.append(np.average(results))
         std.append(np.std(results))
         llm_call_times = [0.0]
-        eval_times = [0.0]
+        eval_times = [etime]
         agent.average_reward = avg[-1]
         policies.append(str(agent.policy).replace('\n', ', '))
         for episode in range(num_episodes):
