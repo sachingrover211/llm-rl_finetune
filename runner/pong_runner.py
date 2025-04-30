@@ -111,7 +111,7 @@ def run_training_loop(
             print(f"Episode {episode} Evaluation Results: {avg[-1]}, {std[-1]}")
             if episode > 0 and episode % print_episode == 0:
                 cols = [avg, std, llm_call_times, eval_times]
-                record_results(title, col_titles, cols logdir, max_limit)
+                record_results(title, col_titles, cols, logdir, max_limit)
 
         with open(logdir + "/policies.txt", "w") as policy_file:
             policy_file.write("\n".join(policies))
@@ -120,7 +120,7 @@ def run_training_loop(
         print("Standard deviation", std)
         print(f"################# Experiment End {i}")
         cols = [avg, std, llm_call_times, eval_times]
-        record_results(title, col_titles, cols logdir, max_limit)
+        record_results(title, col_titles, cols, logdir, max_limit)
         agent.llm_brain.delete_model()
 
 
