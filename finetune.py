@@ -20,7 +20,7 @@ RANK = 3
 STEP_SIZE = 1.0
 MODEL_ID = "Qwen/Qwen2.5-14B-Instruct"
 #MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
-DATA_POINTS = 2000
+DATA_POINTS = 4000
 RL_SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The User is looking for a linear control policy "
     "for the continuous Mountain Car Domain. Assistant first thinks about the reasoning process "
@@ -28,7 +28,7 @@ RL_SYSTEM_PROMPT = (
     "are enclosed within the <think> </think> and <policy> </policy> tags respectively, i.e. "
     "<think> reasoning process here </think><policy> policy here </policy>"
 )
-LOGDIR = "logs/finetune/qwen2.5_14B_numeric_cont_mc"
+LOGDIR = "logs/finetune/qwen2.5_14B_numeric_cont_mc_4000"
 TEMPLATE_DIR = "agent/policy/templates"
 #TEMPLATE = "mountaincar_cont_si.j2"
 TEMPLATE = "numeric_optimization_3_params.j2"
