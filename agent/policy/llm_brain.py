@@ -203,7 +203,7 @@ class LLMBrain:
             updated_matrix = []
 
         trial = 0
-        print("matrix_size", self.matrix_size)
+        #print("matrix_size", self.matrix_size)
         while trial < 3 and len(updated_matrix) != self.matrix_size[0]:
             print("Could not parse matrix once, trying again", trial, updated_matrix)
             self.add_llm_conversation(
@@ -223,7 +223,7 @@ class LLMBrain:
 
             trial += 1
 
-        print("updated_matrix", updated_matrix)
+        #print("updated_matrix", updated_matrix)
         self.add_llm_conversation(matrix_response_with_reasoning, "assistant")
         run_time = time.time() - call_time
         return updated_matrix, matrix_response_with_reasoning, run_time
@@ -404,7 +404,7 @@ class LLMBrainStandardized(LLMBrain):
                 "user"
             )
             response = self.query_llm()
-            print(response)
+            #print(response)
             new_parameters_list = self.parse_parameters_local(response)
             trial += 1
 
@@ -423,7 +423,7 @@ class LLMBrainStandardized(LLMBrain):
     def parse_parameters_local(self, response):
         # This regex looks for integers or floating-point numbers (including optional sign)
         response_array = response.split("\n")
-        print("response:", response_array)
+        #print("response:", response_array)
         pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
         results = []
 
@@ -444,5 +444,5 @@ class LLMBrainStandardized(LLMBrain):
                 if is_policy_updated:
                     break
 
-        print(results)
+        #print(results)
         return np.array(results).reshape(-1)

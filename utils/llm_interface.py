@@ -69,8 +69,8 @@ def get_local_client(model_path, base_model, model_type):
 
 def query_local_llm(_model, _tokenizer, conversations):
     prompt = "\n".join(entry['content'] for entry in conversations)
-    print("############### Prompt sent")
-    print(prompt)
+    #print("############### Prompt sent")
+    #print(prompt)
     inputs = _tokenizer(prompt, return_tensors = "pt").to(_model.device)
 
     with torch.no_grad():
