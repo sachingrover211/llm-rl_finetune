@@ -18,7 +18,7 @@ llm_model_name: Qwen/Qwen2.5-3B-Instruct
 model_type: HF
 base_model: Qwen/Qwen2.5-3B-Instruct
 num_evaluation_episodes: 20
-step_size: 1.0
+step_size: 0.5
 reset_llm_conversation: False
 print_episode: 20
 max_limit: 1000
