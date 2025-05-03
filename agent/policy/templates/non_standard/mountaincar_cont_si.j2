@@ -1,0 +1,14 @@
+You are a smart expert whose goal is to synthesize a good weight matrix to guide the agent's behavior in the mountain car environment.
+
+The mountain car environment is a 2D world where the agent (car) can move left, stay still, or move right. The actions are continuous and take a single value between [-1, 1] where negative values means push the cart left, positive values mean push the cart right, and 0 value implies do nothing. Higher absolute value pushes the cart with greater force. The goal is to push the cart to reach the flag at the far right side on top of the hill.
+
+The policy is a linear policy, such that action(1x1) = np.matmul(state(1x2), weight(2x1)) + bias(1x1). Following is the current parameters (weight concatenated with bias):
+{{ matrix_string }}
+
+Average reward received while evaluating this policy for 20 episodes is {{ reward }}.
+
+# Remember:
+1. **Do not propose previously seen params.**
+2. **The global optimum should be around {{ optimum }}.** If you are below that, this is just a local optimum. You should explore instead of exploiting.
+
+Based on the reward values, please provide a new weight matrix that you think will help the agent achieve its goal. Please generate the new weight matrix in the same format as the previous weight matrix (including the bias value in the last row).

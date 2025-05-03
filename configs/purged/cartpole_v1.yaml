@@ -1,0 +1,21 @@
+task: cartpole
+num_episodes: 20
+gym_env_name: CartPole-v1
+render_mode: null
+continuous: False
+num_position_bins: 10
+num_theta_bins: 10
+logdir: logs/cartpole_v1
+actions: [ [ 0, 1 ] ]
+states: [[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4], [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]]
+max_traj_count: 20
+max_traj_length: 300
+template_dir: agent/policy/templates
+llm_si_template_name: cartpole_si.j2
+llm_ui_template_name: None
+llm_output_conversion_template_name: cartpole_llm_output_conversion.j2
+llm_model_name: gpt-4o
+num_evaluation_episodes: 20
+record_video: True
+use_replay_buffer: True
+reset_llm_conversation: True

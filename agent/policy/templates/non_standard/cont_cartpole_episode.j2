@@ -1,0 +1,11 @@
+Episode {{ episode_number }}:
+
+Table below shows the reward values for each state-action pair. The table shows a complete trajectory for one of the 20 evaluations, with maximum 100 rows.  Use this information to improve the policy
+{{ replay_buffer_string }}
+
+As explained, the policy is a linear policy, such that action(1x2) = np.matmul(state(1x4), weight(4x2)) + bias(1x2) Following is the current parameters (weight concatenated with bias):
+{{ matrix_string }}
+
+Average reward received while evaluating this policy for 20 episodes is {{ reward }}.
+
+Based on the reward values, please provide a new weight matrix that you think will help the agent achieve its goal. Please generate the new weight matrix in the same format as the previous weight matrix (including the bias value in the last row).

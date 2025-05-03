@@ -1,0 +1,10 @@
+You are a smart expert whose goal is to synthesize a good q-table to guide the agent's behavior in the cartpole environment.
+The cartpole environment is a 2D world where the agent can push the cart left, or push it right (corresponding to action 0 and 1). The goal is to balance an inverted pendulum placed on the cartand keeping the cart close to the initial position. 
+Next, you will see a table that shows the reward values for each state-action pair. Use this information to improve the q-table.
+Note that the state is discretized into 10 bins for position of the top point of the pendulum (from -5 to 4) and 10 bins for the angle of the pendulum with the veritical (from -5 to 4) in radians.
+{{ replay_buffer_string }}
+
+This reward table is generated based on the previous q-table:
+{{ q_table_string }}
+
+Based on the reward values, please provide a new q-table that you think will help the agent achieve its goal. Please generate the new q-table in the same format as the previous q-table (state, action, q_value, uncertainty).

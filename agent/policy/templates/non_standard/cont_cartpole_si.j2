@@ -1,0 +1,13 @@
+You are a smart expert whose goal is to synthesize a good weight matrix to guide the agent's behavior in the cartpole environment.
+The cartpole environment is a 2D world where the agent can push the cart left, or push it right (corresponding to action 0 and 1). The goal is to balance an inverted pendulum placed on the cart and keeping the cart close to the initial position. 
+
+Next, you will see a table that shows the reward values for each state-action pair. Use this information to improve the policy
+{{ replay_buffer_string }}
+
+
+The policy is a linear policy, such that action(1x2) = np.matmul(state(1x4), weight(4x2)) + bias(1x2) Following is the current parameters (weight concatenated with bias):
+{{ matrix_string }}
+
+Average reward received while evaluating this policy for 20 episodes is {{ reward }}.
+
+Based on the reward values, please provide a new weight matrix that you think will help the agent achieve its goal. Please generate the new weight matrix in the same format as the previous weight matrix (including the bias value in the last row).
