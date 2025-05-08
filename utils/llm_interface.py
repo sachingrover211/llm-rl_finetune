@@ -47,7 +47,7 @@ def get_local_client(model_path, base_model, model_type):
     if model_type == "HF":
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            torch_dtype = torch.float16,
+            torch_dtype = torch.bfloat16,
             device_map = "auto",
         )
     elif model_type == "OFFLINE":
