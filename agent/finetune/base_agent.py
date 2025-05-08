@@ -15,6 +15,7 @@ class BaseFinetuneAgent:
         self.policy = LinearPolicy(states, actions)
         self.matrix_size = (states + 1, actions)
         self.rank = (states+1)*actions
+        self.pattern = re.compile(r"params\[(\d+)\]:\s*([+-]?\d+(?:\.\d+)?)")
 
 
     def initialize_policy(self, weight):

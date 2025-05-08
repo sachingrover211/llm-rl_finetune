@@ -165,5 +165,6 @@ cython_debug/
 # removing swap files for vim
 .*.*.sw*
 
-# Logs
-logs/
+# Log files
+*.log
+logs/*
