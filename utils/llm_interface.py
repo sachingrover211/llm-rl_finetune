@@ -48,20 +48,20 @@ def get_local_client(model_path, base_model, model_type):
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             torch_dtype = torch.bfloat16,
-            device_map = "auto",
+            #device_map = "auto",
         )
     elif model_type == "OFFLINE":
         _model = AutoModelForCausalLM.from_pretrained(
             base_model,
             torch_dtype = torch.bfloat16,
-            device_map = "auto",
+            #device_map = "auto",
         )
         #_model.resize_token_embeddings(len(tokenizer))
         model = PeftModel.from_pretrained(
             model=_model,
             model_id = model_path,
             torch_dtype = torch.bfloat16,
-            device_map = "auto",
+            #device_map = "auto",
         )
 
     return model, tokenizer
