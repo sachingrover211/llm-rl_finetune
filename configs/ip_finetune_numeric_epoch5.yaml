@@ -3,7 +3,7 @@ experiments: 30
 num_episodes: 100
 gym_env_name: InvertedPendulum-v5
 render_mode: None
-logdir: logs/evaluation/inv_pend/numeric_qwen2.5_14B_epoch5
+logdir: logs/evaluation/inv_pendulum/numeric_qwen2.5_14B_epoch5
 actions: 1
 states: 4
 max_traj_count: 1000
