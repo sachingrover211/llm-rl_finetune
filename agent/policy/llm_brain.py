@@ -7,7 +7,7 @@ import re
 import time
 from jinja2 import Template
 import tiktoken
-from utils.llm_interface import get_local_client, query_llm, query_local_llm
+from utils.llm_interface import get_local_client, query_llm, query_local_llm, delete_local_model
 
 
 class LLMBrain:
@@ -33,7 +33,7 @@ class LLMBrain:
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 16384
+        self.token_limit = 24000
         self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
@@ -90,8 +90,8 @@ class LLMBrain:
 
 
     def delete_model(self):
-        if self.model_type == ["HF", "OFFLINE"]:
-            remove_local_llm(self.model)
+        if self.model_type in ["HF", "OFFLINE"]:
+            delete_local_model(self.model)
 
 
     def parse_q_table(self, q_table_string):
