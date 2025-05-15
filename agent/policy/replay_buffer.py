@@ -287,6 +287,10 @@ class EpisodeRewardBufferNoBias:
         self.buffer.append((weights, reward))
 
 
+    def pop(self):
+        self.buffer.popleft()
+
+
     def __str__(self):
         buffer_table = "Parameters | Reward\n"
         for weights, reward in self.buffer:

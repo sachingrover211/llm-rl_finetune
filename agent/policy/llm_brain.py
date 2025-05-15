@@ -33,7 +33,7 @@ class LLMBrain:
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 24000
+        self.token_limit = 24576
         self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
@@ -76,10 +76,10 @@ class LLMBrain:
 
     def query_llm(self):
         response = ""
-        while self.tokens > self.token_limit:
-            # keeping the system prompt and never removing that.
-            if len(self.llm_conversation) > 1:
-                self.remove_llm_conversation(1)
+        #while self.tokens > self.token_limit:
+        #    # keeping the system prompt and never removing that.
+        #    if len(self.llm_conversation) > 1:
+        #        self.remove_llm_conversation(1)
 
         if self.model_type in ["HF", "OFFLINE"]:
             response = query_local_llm(self.model, self.tokenizer, self.llm_conversation)
@@ -369,20 +369,14 @@ class LLMBrainStandardized(LLMBrain):
         call_time = time.time()
         self.rank = rank
         self.reset_llm_conversation()
-        text = self.str_episode_reward(episode_reward_buffer, rank)
-        system_prompt = self.llm_si_template.render(
-            {
-                "episode_reward_buffer_string": str(text),
-                "step_number": str(step_number),
-                "rank": rank,
-                "optimum": str(optimum),
-                "step_size": str(search_step_size),
-                "env_description": self.env_description,
-                "episodes": self.num_episodes
-            }
-        )
-
+        system_prompt = self.construct_prompt(episode_reward_buffer, step_number, optimum, search_step_size)
         self.add_llm_conversation(system_prompt, "user")
+        if self.tokens > self.token_limit:
+            self.reset_llm_conversation()
+            episode_reward_buffer.pop()
+            system_prompt = self.construct_prompt(episode_reward_buffer, step_number, optimum, search_step_size)
+            self.add_llm_conversation(system_prompt, "user")
+
         new_parameters_with_reasoning = self.query_llm()
         new_parameters_list = self.parse_parameters_local(new_parameters_with_reasoning)
         # print(system_prompt)
@@ -417,6 +411,21 @@ class LLMBrainStandardized(LLMBrain):
             + "\n\n\nLLM:\n"
             + new_parameters_with_reasoning,
             run_time
+        )
+
+
+    def construct_prompt(self, buffer, step_number, optimum, search_step_size)
+        text = self.str_episode_reward(buffer, self.rank)
+        return self.llm_si_template.render(
+            {
+                "episode_reward_buffer_string": str(text),
+                "step_number": str(step_number),
+                "rank": self.rank,
+                "optimum": str(optimum),
+                "step_size": str(search_step_size),
+                "env_description": self.env_description,
+                "episodes": self.num_episodes
+            }
         )
 
 
