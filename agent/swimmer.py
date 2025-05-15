@@ -63,7 +63,7 @@ class SwimmerAgent:
         logging_file.write(f"state | action | reward\n")
         done = False
         while not done:
-            action = self.policy.get_action(state).argmax()
+            action = self.policy.get_action(state)
             next_state, reward, done = world.step(action)
             logging_file.write(f"{state} | {action} | {reward}\n")
             state = next_state

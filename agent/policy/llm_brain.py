@@ -414,7 +414,7 @@ class LLMBrainStandardized(LLMBrain):
         )
 
 
-    def construct_prompt(self, buffer, step_number, optimum, search_step_size)
+    def construct_prompt(self, buffer, step_number, optimum, search_step_size):
         text = self.str_episode_reward(buffer, self.rank)
         return self.llm_si_template.render(
             {

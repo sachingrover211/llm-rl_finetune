@@ -33,7 +33,7 @@ def run_training_loop(
     max_limit,
     title,
 ):
-    assert task == "pong"
+    assert task == "swimmer"
 
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
     llm_si_template = jinja2_env.get_template(llm_si_template_name)
