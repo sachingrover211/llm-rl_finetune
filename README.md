@@ -24,7 +24,7 @@ For running first define a config file, and their property description is define
 * llm\_si\_template\_name: system prompt template. Run once at the beginning of the experiment.
 * llm\_ui\_template\_name: user prompt template, sent for optimizing parameters after every episode.
 * llm\_output\_conversion\_template\_name: in case the output format does not match, then this prompt is used to correct the formatting.
-* llm\_model\_name: model used for getting the response. Linear policy can work with `gpt-4o`. Q-table could not be created properly requires `o1`.  
+* llm\_model\_name: model used for getting the response. Linear policy can work with `gpt-4o`. Q-table could not be created properly requires `o1`. OFFLINE models should provide path. Other options possible are HF models which should provide the HF name for downloading the model.  
 * num\_evaluation\_episodes: number of episodes per evaluation.
 * record\_video: (true/false) record videos for the evaluation episode. Currently not working correctly.
 * use\_replay\_buffer: (true/false) should prompt use replay buffer or not.
@@ -34,15 +34,4 @@ Then run the command
 
 ```python main.py --config <path to config>```
 
-
-Currently the code supports --
-
-* Mountaincar -- discrete and continuous
-* Cartpole
-* Inverted pendulum (continuous single action version of cartpole)
-* Hopper -- working on it
-* Swimmer -- The results were not that great for this.
-
-Frozen lake is forthcoming (it hasnt been tested for a little while the agent is not working right now).
-
-For instructions to add a new domain, please reach out to the repo owner.
+Currently it supports finetuning the model using `finetune.py`. There are two slurm files that were used for finetuning -- `finetune.sh` and inference -- `inference.sh`. The specific models to finetune can be set as a property at the finetuning file, as well as the logging directory. Inference is run through config files. It is similar to the previous command however, the model is defined as `OFFLINE`, with the location provided in the llm_model_name.
