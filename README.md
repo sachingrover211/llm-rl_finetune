@@ -1,4 +1,4 @@
-# llm-q
+# LLM RL Finetune
 Policy improvement for RL using LLMs
 
 ### Installation
