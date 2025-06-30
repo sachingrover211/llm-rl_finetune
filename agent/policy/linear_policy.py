@@ -34,7 +34,7 @@ class LinearPolicy(Policy):
 
 
     def initialize_policy_with_weights(self, weight):
-        self.weight = np.array([np.array(weight[:-1])]).T
+        self.weight = np.array([np.array(weight[:-1])])
         self.bias = np.array([np.array([weight[-1]])])
 
     def initialize_policy(self):

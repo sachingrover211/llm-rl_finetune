@@ -162,7 +162,7 @@ def format_hard_reward(completions, **kwargs):
     return rewards_list
 
 def evaluate_response(response):
-    world = SwimmerWorld("MountainCarContinuous-v0", None)
+    world = SwimmerWorld(None)
     agent = SwimmerFinetuneAgent(ACTIONS, STATES, 20)
 
     reward = 0.0
@@ -208,7 +208,7 @@ def run():
     print("CUDA device availability ", torch.cuda.is_available(), DEVICE)
     print("Initialize Agent and World")
     logdir = LOGDIR
-    world = SwimmerWorld("MountainCarContinuous-v0", None)
+    world = SwimmerWorld(None)
     agent = SwimmerFinetuneAgent(ACTIONS, STATES, 20)
 
     print("Create Dataset")
