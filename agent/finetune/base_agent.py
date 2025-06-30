@@ -19,6 +19,7 @@ class BaseFinetuneAgent:
 
 
     def initialize_policy(self, weight):
+        weight = weight.reshape(self.matrix_size)
         self.policy.initialize_policy_with_weights(weight)
 
 
