@@ -98,7 +98,7 @@ def create_dataset(world, agent, logdir):
         #     f"{np.round(row['w1'], decimals = 4)}\n" + \
         #     f"Bias:\n{np.round(row['b'], decimals = 4)}"
         # updating the template to specific w0 w1 and b directly added to the format
-        episode_replay_string = f"{params}; f(params): {np.round(row['evaluation'], decimals = 2)}"
+        episode_replay_string = f"{row['params']}; f(params): {np.round(row['evaluation'], decimals = 2)}"
         prompts.append(llm_template.render({
             "rank": RANK,
             "episode_reward_buffer_string": episode_replay_string,
