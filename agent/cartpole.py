@@ -111,7 +111,7 @@ class CartpoleAgent:
             )
 
         eval_time = time.time() - eval_start_time
-        return results
+        return results, eval_time
 
 
 class ContinuousCartpoleAgent(CartpoleAgent):
