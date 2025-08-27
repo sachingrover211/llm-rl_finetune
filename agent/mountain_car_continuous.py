@@ -31,7 +31,7 @@ class MountainCarContinuousAgent:
         )
 
         self.llm_brain = LLMBrainStandardized(
-            llm_si_template, llm_output_conversion_template, llm_model_name, env_desc_file, model_type, base_model, env_desc_file, num_episodes
+            llm_si_template, llm_output_conversion_template, llm_model_name, env_desc_file, model_type, base_model, num_episodes
         )
         self.llm_brain.reset_llm_conversation()
 
