@@ -14,9 +14,9 @@ llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
 llm_output_conversion_template_name: output_conversion_3_params.j2
 env_desc_file: None
 #llm_model_name: gpt-4o
-llm_model_name: huggingface/oss-20b
+llm_model_name: openai/gpt-oss-20b
 model_type: HF
-base_model: huggingface/oss-20b
+base_model: openai/gpt-oss-20b
 num_evaluation_episodes: 20
 step_size: 0.5
 reset_llm_conversation: False
