@@ -27,8 +27,8 @@ class Agent():
 
     def add_warmup(self, world, logdir):
         for _ in range(self.warmup_episodes):
-            self.policy.initialize_policy()
             self.evaluate_policy(world, logdir)
+            self.policy.initialize_policy()
 
 
     def rollout_episode(self, world, logdir, logging_file):

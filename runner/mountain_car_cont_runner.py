@@ -81,6 +81,7 @@ def run_training_loop(
         )
 
         agent.initialize_policy(states, actions)
+        agent.add_warmup(world, logdir)
         curr_episode_dir = f"{logdir}/episode_initial"
         print(f"Initialized weights: {str(agent.policy)}")
         os.makedirs(curr_episode_dir, exist_ok=True)
