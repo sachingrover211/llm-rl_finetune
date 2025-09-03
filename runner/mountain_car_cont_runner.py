@@ -67,7 +67,6 @@ def run_training_loop(
             states,
             max_traj_count,
             max_traj_length,
-            warmup_episodes,
             llm_si_template,
             llm_ui_template,
             llm_output_conversion_template,

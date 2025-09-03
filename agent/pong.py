@@ -1,10 +1,4 @@
-import time
-import numpy as np
-from agent.policy.linear_policy import LinearPolicy
-from agent.policy.replay_buffer import EpisodeRewardBufferNoBias
-from agent.policy.llm_brain import LLMBrainStandardized
-from world.pong import PongWorld
-
+from agent.base_agent import ContinuousAgent
 
 class PongAgent(ContinuousAgent):
     def __init__(
