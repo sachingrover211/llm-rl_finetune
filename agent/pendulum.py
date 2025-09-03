@@ -1,77 +1,32 @@
-from agent.policy.q import QTable
-from agent.policy.replay_buffer import ReplayBuffer
-from agent.policy.llm_brain import LLMBrain
-from world.pendulum import PendulumWorld
+from agent.base_agent import DiscreteAgent
 
 
-class PendulumAgent:
+class PendulumAgent(DiscreteAgent):
     def __init__(
         self,
+        num_episodes,
         logdir,
         actions,
         states,
         max_traj_count,
         max_traj_length,
         llm_si_template,
+        llm_ui_template,
         llm_output_conversion_template,
         llm_model_name,
+        model_type,
+        base_model,
         num_evaluation_episodes,
+        step_size = 1.0,
+        reset_llm_conversations = False,
+        env_desc_file = None
     ):
-        self.q_table = QTable(actions=actions, states=states)
-        self.replay_buffer = ReplayBuffer(
-            max_traj_count=max_traj_count, max_traj_length=max_traj_length
+        self.reset_llm_conversations = reset_llm_conversations
+        self.max_val = 1000.0
+        self.step_size = step_size
+
+        super().__init__(
+            num_episodes, logdir, actions, states, max_traj_count, \
+            max_traj_length, llm_si_template, llm_ui_template, llm_output_conversion_template, \
+            llm_model_name, model_type, base_model, num_evaluation_episodes, env_desc_file
         )
-        self.llm_brain = LLMBrain(
-            llm_si_template, llm_output_conversion_template, llm_model_name
-        )
-        self.logdir = logdir
-        self.num_evaluation_episodes = num_evaluation_episodes
-        self.training_episodes = 0
-
-    def rollout_episode(self, world: PendulumWorld, logging_file):
-        state = world.reset()
-        self.replay_buffer.start_new_trajectory()
-        logging_file.write(f"state | action | reward\n")
-        done = False
-        while not done:
-            action = self.q_table.get_action(state)
-            next_state, reward, done = world.step(action)
-            self.replay_buffer.add_step(state, action, reward)
-            logging_file.write(f"{state} | {action} | {reward}\n")
-            state = next_state
-        return world.get_accu_reward()
-
-    def train_policy(self, world: PendulumWorld, logdir):
-        # Run the episode and collect the trajectory
-        print(f"Rolling out episode {self.training_episodes}...")
-        logging_filename = f"{logdir}/training_rollout.txt"
-        logging_file = open(logging_filename, "w")
-        result = self.rollout_episode(world, logging_file)
-        print(f"Result: {result}")
-
-        # Update the policy using llm_brain, q_table and replay_buffer
-        print("Updating the policy...")
-        new_q_values_list, reasoning = self.llm_brain.llm_update_q_table(
-            self.q_table, self.replay_buffer
-        )
-        self.q_table.update_policy(new_q_values_list)
-        logging_q_filename = f"{logdir}/q_table.txt"
-        logging_q_file = open(logging_q_filename, "w")
-        logging_q_file.write(str(self.q_table))
-        logging_q_file.close()
-        self.q_reasoning_filename = f"{logdir}/q_reasoning.txt"
-        self.q_reasoning_file = open(self.q_reasoning_filename, "w")
-        self.q_reasoning_file.write(reasoning)
-        self.q_reasoning_file.close()
-        print("Policy updated!")
-
-        self.training_episodes += 1
-
-    def evaluate_policy(self, world: PendulumWorld, logdir):
-        results = []
-        for idx in range(self.num_evaluation_episodes):
-            logging_filename = f"{logdir}/evaluation_rollout_{idx}.txt"
-            logging_file = open(logging_filename, "w")
-            result = self.rollout_episode(world, logging_file)
-            results.append(result)
-        return results
