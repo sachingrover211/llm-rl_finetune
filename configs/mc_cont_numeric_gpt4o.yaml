@@ -1,0 +1,26 @@
+task: mc_continuous
+experiments: 10
+num_episodes: 400
+gym_env_name: MountainCarContinuous-v0
+render_mode: None
+logdir: logs/evaluation/continuous_mc/numeric_gpt-4o
+actions: 1
+states: 2
+max_traj_count: 20
+max_traj_length: 400
+warmup_episodes: 20
+template_dir: agent/policy/templates
+llm_si_template_name: numeric_optimization_3_params.j2
+llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
+llm_output_conversion_template_name: output_conversion_3_params.j2
+env_desc_file: None
+llm_model_name: gpt-4o
+#llm_model_name: Qwen/Qwen2.5-14B-Instruct
+model_type: openai
+base_model: openai
+num_evaluation_episodes: 20
+step_size: 0.5
+reset_llm_conversation: False
+print_episode: 50
+max_limit: 100
+title: Mountain Car Continuous as ProPS GPT-4o Baseline
