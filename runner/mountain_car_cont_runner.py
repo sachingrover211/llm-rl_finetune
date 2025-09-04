@@ -81,10 +81,10 @@ def run_training_loop(
         )
 
         agent.initialize_policy(states, actions)
-        agent.add_warmup(world, logdir)
         curr_episode_dir = f"{logdir}/episode_initial"
-        print(f"Initialized weights: {str(agent.policy)}")
         os.makedirs(curr_episode_dir, exist_ok=True)
+        agent.add_warmup(world, curr_episode_dir)
+        print(f"Initialized weights: {str(agent.policy)}")
         matrix_file = f"{curr_episode_dir}/matrix.txt"
         with open(matrix_file, "w") as f:
             f.write(str(agent.policy))

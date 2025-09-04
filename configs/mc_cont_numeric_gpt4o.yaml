@@ -6,7 +6,7 @@ render_mode: None
 logdir: logs/evaluation/continuous_mc/numeric_gpt-4o
 actions: 1
 states: 2
-max_traj_count: 20
+tax_traj_count: 20
 max_traj_length: 400
 warmup_episodes: 20
 template_dir: agent/policy/templates
