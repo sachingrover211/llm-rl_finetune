@@ -33,7 +33,7 @@ class LLMBrain:
         # encoder is from open ai API, and we use that to get an estimate of tokens
         self.encoder = tiktoken.encoding_for_model("o1-preview")
         self.tokens = 0
-        self.token_limit = 24576
+        self.token_limit = 200000
         self.matrix_size = (0, 0)
         self.model_type = model_type
         self.TEXT_KEY = "content"
