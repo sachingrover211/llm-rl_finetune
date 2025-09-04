@@ -1,2 +1,0 @@
-/home/yzhou298/avashis9/llm-rl_finetune
---config_file /home/yzhou298/accelerate_config_single_gpu.yaml main.py --config /home/yzhou298/avashis9/llm-rl_finetune/configs/mc_cont_finetune_oss_baseline.yaml
