@@ -92,7 +92,7 @@ class DiscreteAgent(Agent):
     ):
         super().__init__()
         self.replay_buffer = EpisodeRewardBufferNoBias(
-            max_size=max_traj_count
+            max_size=max_traj_length
         )
 
         self.llm_brain = LLMBrainStandardized(
@@ -159,7 +159,7 @@ class ContinuousAgent(Agent):
     ):
         super().__init__()
         self.replay_buffer = EpisodeRewardBufferNoBias(
-            max_size=max_traj_count
+            max_size=max_traj_length
         )
 
         self.llm_brain = LLMBrainStandardized(
