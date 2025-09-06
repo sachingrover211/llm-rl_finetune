@@ -18,6 +18,7 @@ def run_training_loop(
     states,
     max_traj_count,
     max_traj_length,
+    warmup_episodes,
     template_dir,
     llm_si_template_name,
     llm_ui_template_name,
@@ -73,6 +74,7 @@ def run_training_loop(
             model_type,
             base_model,
             num_evaluation_episodes,
+            warmup_episodes,
             step_size,
             reset_llm_conversation,
             env_desc_file
