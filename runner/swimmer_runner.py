@@ -33,6 +33,11 @@ def run_training_loop(
     max_limit,
     title,
 ):
+    if render_mode == "None":
+        render_mode = None
+
+    if env_desc_file == "None":
+        env_desc_file = None
     assert task == "swimmer"
 
     jinja2_env = Environment(loader=FileSystemLoader(template_dir))
@@ -77,6 +82,7 @@ def run_training_loop(
         curr_episode_dir = f"{logdir}/episode_initial"
         print(f"Initialized weights: {str(agent.policy)}")
         os.makedirs(curr_episode_dir, exist_ok=True)
+        agent.add_warmup(world, curr_episode_dir)
         matrix_file = f"{curr_episode_dir}/matrix.txt"
         with open(matrix_file, "w") as f:
             f.write(str(agent.policy))
