@@ -1,9 +1,9 @@
 task: cartpole
-experiments: 5
+experiments: 30
 num_episodes: 100
 gym_env_name: Cartpole-v1
 render_mode: None
-logdir: logs/evaluation/cartpole/numeric_qwen2.5_14B_baseline
+logdir: /scratch/melmisti/logs/evaluation/cartpole/numeric_qwen2.5_14B_baseline
 actions: 2
 states: 4
 max_traj_count: 20
@@ -18,8 +18,8 @@ llm_model_name: Qwen/Qwen2.5-14B-Instruct
 model_type: HF
 base_model: Qwen/Qwen2.5-14B-Instruct
 num_evaluation_episodes: 20
-step_size: 1.0
+step_size: 0.5
 reset_llm_conversation: False
 print_episode: 20
-max_limit: 100
+max_limit: 500
 title: Cartpole as ProPS with Qwen2.5 14B Baseline

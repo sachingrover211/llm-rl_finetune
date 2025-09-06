@@ -3,7 +3,7 @@ experiments: 30
 num_episodes: 100
 gym_env_name: MountainCarContinuous-v0
 render_mode: None
-logdir: logs/evaluation/continuous_mc/numeric_qwen2.5_14B_epoch5
+logdir: /scratch/melmisti/logs/evaluation/continuous_mc/swimmer/numeric_qwen2.5_14B_epoch5
 actions: 1
 states: 2
 max_traj_count: 20
@@ -14,7 +14,7 @@ llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
 llm_output_conversion_template_name: output_conversion_3_params.j2
 env_desc_file: None
 #llm_model_name: gpt-4o
-llm_model_name: logs/finetune/completed/qwen2.5_14B_numeric_cont_mc/final
+llm_model_name: /scratch/sgrover6/logs/finetune/completed/qwen2.5_14B_numeric_swimmer_4000/final
 model_type: OFFLINE
 base_model: Qwen/Qwen2.5-14B-Instruct
 num_evaluation_episodes: 20

@@ -10,7 +10,7 @@ max_traj_count: 20
 max_traj_length: 100
 warmup_episodes: 20
 template_dir: agent/policy/templates
-llm_si_template_name: semantic_optimization.j2
+llm_si_template_name: numeric_optimization.j2
 llm_ui_template_name: non_standard/mountaincar_cont_episode.j2 #DEPRECATED AFTER STANDARDIZATION
 llm_output_conversion_template_name: output_conversion.j2
 env_desc_file: None
