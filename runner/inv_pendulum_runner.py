@@ -53,7 +53,7 @@ def run_training_loop(
 
     root_folder = logdir
     col_titles = ["Average reward", "Standard deviation", "LLM Call Time", "Evaluation Time"]
-    for i in range(experiments):
+    for i in range(6, experiments):
         print(f"################# Experiment Started {i}")
         logdir = f"{root_folder}/experiment_{i}"
 
