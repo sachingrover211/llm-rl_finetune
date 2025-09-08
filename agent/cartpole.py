@@ -22,6 +22,7 @@ class CartpoleAgent(DiscreteAgent):
         model_type,
         base_model,
         num_evaluation_episodes,
+        warmup_episodes=1,
         step_size = 1.0,
         reset_llm_conversations = False,
         env_desc_file = None
@@ -30,6 +31,7 @@ class CartpoleAgent(DiscreteAgent):
         self.reset_llm_conversations = reset_llm_conversations
         self.max_val = 500.0
         self.step_size = step_size
+        self.warmup_episodes = warmup_episodes
 
         super().__init__(
             num_episodes, logdir, actions, states, max_traj_count, \
