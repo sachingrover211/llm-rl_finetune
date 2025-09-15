@@ -62,10 +62,16 @@ class ContinuousCartpoleAgent(ContinuousAgent):
         model_type,
         base_model,
         num_evaluation_episodes,
+        warmup_episodes,
         step_size,
         reset_llm_conversations,
         env_desc_file
     ):
+        self.reset_llm_conversations = reset_llm_conversations
+        self.max_val = 500.0
+        self.step_size = step_size
+        self.warmup_episodes = warmup_episodes
+
         super().__init__(
             num_episodes, logdir, action_dims, state_dims, max_traj_count, max_traj_length, \
             llm_si_template, llm_ui_template, llm_output_conversation_template, \
@@ -73,6 +79,6 @@ class ContinuousCartpoleAgent(ContinuousAgent):
         )
 
 
-    def get_next_action(self, world, state):
+    def get_next_action(self, state):
         action = self.policy.get_action(state).argmax()
         return action
