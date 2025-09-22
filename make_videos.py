@@ -93,6 +93,7 @@ def experiments(number, name, weights):
 
 
 if __name__ == "__main__":
+
     # this has 500 value
     cartpole_weights = [[-0.05, 0.05], [-0.25, 0.25], [-2.0, 2.0], [-2.5, 2.5], [0.05, 0.06]]
     # this has 1000 value
