@@ -12,7 +12,7 @@ warmup_episodes: 20
 template_dir: agent/policy/templates
 llm_si_template_name: numeric_optimization.j2
 llm_ui_template_name: non_standard/hopper_episode.j2
-llm_output_conversion_template_name: output_conversion.j2
+llm_output_conversion_template_name: hopper_llm_output_conversion.j2
 env_desc_file: None
 #llm_model_name: gpt-oss
 llm_model_name: openai/gpt-oss-20b
