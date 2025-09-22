@@ -93,7 +93,6 @@ def experiments(number, name, weights):
 
 
 if __name__ == "__main__":
-    name = "CartPole-v1"
     # this has 500 value
     cartpole_weights = [[-0.05, 0.05], [-0.25, 0.25], [-2.0, 2.0], [-2.5, 2.5], [0.05, 0.06]]
     # this has 1000 value
@@ -106,8 +105,10 @@ if __name__ == "__main__":
     # weights = [[0.1, 0.2], [0.2, 0.3], [0.6, 1.5], [0.4, 0.9], [0.05, 0.1]]
     # weights = np.array([0.1, 0.2, 0.6, 0.4, 0.05])
     _num = 1
-    experiments(_num, name, cartpole_weights)
+
+    experiments(_num, "CartPole-v1", cartpole_weights)
     experiments(_num, "Swimmer-v5", swimmer_weights)
     experiments(_num, "InvertedPendulum-v5", ip_weights)
     experiments(_num, "MountainCarContinuous-v0", mc_weights)
     # experiments(_num, "PongNoFrameskip-v5", pong_weights)
+
