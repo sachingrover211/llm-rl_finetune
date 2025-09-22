@@ -1,4 +1,4 @@
-task: cont_space_llm_num_optim
+task: mountaincar
 experiments: 10
 num_episodes: 400
 gym_env_name: MountainCar-v0
@@ -23,6 +23,4 @@ step_size: 1.0
 reset_llm_conversation: False
 print_episode: 20
 max_limit: 100
-bias: true
-optimum: -120
 title: Mountain Car Discrete as ProPS HF OSS 20B Baseline
