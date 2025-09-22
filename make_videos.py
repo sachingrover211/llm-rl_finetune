@@ -105,10 +105,8 @@ if __name__ == "__main__":
     # weights = [[0.1, 0.2], [0.2, 0.3], [0.6, 1.5], [0.4, 0.9], [0.05, 0.1]]
     # weights = np.array([0.1, 0.2, 0.6, 0.4, 0.05])
     _num = 1
-
     experiments(_num, "CartPole-v1", cartpole_weights)
     experiments(_num, "Swimmer-v5", swimmer_weights)
     experiments(_num, "InvertedPendulum-v5", ip_weights)
     experiments(_num, "MountainCarContinuous-v0", mc_weights)
     # experiments(_num, "PongNoFrameskip-v5", pong_weights)
-
