@@ -1,4 +1,4 @@
-task: cont_space_llm_num_optim
+task: hopper
 num_episodes: 400
 experiments: 10
 gym_env_name: Hopper-v5
