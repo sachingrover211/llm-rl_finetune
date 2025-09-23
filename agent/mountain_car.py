@@ -62,3 +62,8 @@ class MountainCarDiscreteActionAgent(ContinuousAgent):
             llm_si_template, llm_ui_template, llm_output_conversation_template, \
             llm_model_name, model_type, base_model, num_evaluation_episodes, env_desc_file
         )
+
+    def get_next_action(self, state):
+        action = self.policy.get_action(state).argmax()
+        return action
+
