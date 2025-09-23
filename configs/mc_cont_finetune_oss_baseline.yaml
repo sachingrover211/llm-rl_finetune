@@ -3,7 +3,7 @@ experiments: 10
 num_episodes: 400
 gym_env_name: MountainCarContinuous-v0
 render_mode: None
-logdir: /scratch/sgrover6/logs/evaluation/baseline/continuous_mc/numeric_hf_oss_20B_baseline_400ep
+logdir: /scratch/sgrover6/logs/evaluation/baseline/continuous_mc/numeric_hf_oss_20B_baseline_400ep_test
 actions: 1
 states: 2
 max_traj_count: 20

@@ -7,3 +7,9 @@ class HopperWorld(BaseWorld):
         self.render_mode = _render_mode
 
 
+    def step(self, action):
+        action = action.reshape(-1)
+        state, reward, done, truncated, _ = self.env.step(action)
+        self.total_reward += reward
+
+        return self.decode_state(state), reward, done or truncated
