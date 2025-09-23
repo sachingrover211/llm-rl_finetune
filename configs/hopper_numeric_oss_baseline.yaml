@@ -24,4 +24,3 @@ reset_llm_conversation: False
 print_episode: 20
 max_limit: 100
 title: Swimmer as ProPS s ProPS HF OSS 20B Baseline
-optimum: 1000
