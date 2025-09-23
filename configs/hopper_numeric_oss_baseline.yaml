@@ -7,7 +7,7 @@ logdir: /scratch/sgrover6/logs/evaluation/baseline/hopper/numeric_hf_oss_20B_bas
 actions: 3
 states: 11
 max_traj_count: 20
-max_traj_length: 100
+max_traj_length: 25
 warmup_episodes: 20
 template_dir: agent/policy/templates
 llm_si_template_name: numeric_optimization.j2
@@ -22,5 +22,5 @@ num_evaluation_episodes: 20
 step_size: 0.1
 reset_llm_conversation: False
 print_episode: 20
-max_limit: 100
-title: Swimmer as ProPS s ProPS HF OSS 20B Baseline
+max_limit: 1000.0
+title: Hopper as ProPS s ProPS HF OSS 20B Baseline
