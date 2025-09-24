@@ -48,7 +48,7 @@ class LLMBrain:
 
 
     def create_regex(self):
-        single_float = "[0-9 .-]+[, ]+"
+        single_float = r"[0-9 .-]+[, ]+"
         reg = ""
         for _ in range(self.matrix_size[1]):
             reg += single_float
@@ -91,6 +91,7 @@ class LLMBrain:
 
     def delete_model(self):
         if self.model_type in ["HF", "OFFLINE"]:
+            print("Deleting Model!")
             delete_local_model(self.model)
 
 
@@ -259,8 +260,8 @@ class LLMBrain:
     def parse_parameters_local(self, parameters_string):
         # parse params when the response is from local models
         new_parameters_list = list()
-        float_continuous = "[0-9 .-]+[.,\s\]\)\}|]+"
-        single_float = "[0-9 .-]+"
+        float_continuous = r"[0-9 .-]+[.,\s\]\)\}|]+"
+        single_float = r"[0-9 .-]+"
         new_ps = parameters_string.lower()
         sub_split = ""
         if "weights" in new_ps:

@@ -18,6 +18,7 @@ def run_training_loop(
     states,
     max_traj_count,
     max_traj_length,
+    warmup_episodes,
     template_dir,
     llm_si_template_name,
     llm_ui_template_name,
@@ -68,6 +69,7 @@ def run_training_loop(
             model_type,
             base_model,
             num_evaluation_episodes,
+            warmup_episodes,
             step_size,
             reset_llm_conversation,
             env_desc_file
@@ -77,6 +79,7 @@ def run_training_loop(
         curr_episode_dir = f"{logdir}/episode_initial"
         print(f"Initialized weights: {str(agent.policy)}")
         os.makedirs(curr_episode_dir, exist_ok=True)
+        agent.add_warmup(world, curr_episode_dir)
         matrix_file = f"{curr_episode_dir}/matrix.txt"
         with open(matrix_file, "w") as f:
             f.write(str(agent.policy))

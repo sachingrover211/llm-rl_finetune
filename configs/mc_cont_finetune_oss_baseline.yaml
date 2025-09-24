@@ -1,25 +1,26 @@
 task: mc_continuous
-experiments: 30
-num_episodes: 100
+experiments: 10
+num_episodes: 400
 gym_env_name: MountainCarContinuous-v0
 render_mode: None
-logdir: /scratch/melmisti/logs/evaluation/continuous_mc/swimmer/numeric_qwen2.5_14B_epoch5
+logdir: /scratch/sgrover6/logs/evaluation/baseline/continuous_mc/numeric_hf_oss_20B_baseline_400ep
 actions: 1
 states: 2
 max_traj_count: 20
-max_traj_length: 1000
+max_traj_length: 100
+warmup_episodes: 20
 template_dir: agent/policy/templates
 llm_si_template_name: numeric_optimization_3_params.j2
 llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
 llm_output_conversion_template_name: output_conversion_3_params.j2
 env_desc_file: None
 #llm_model_name: gpt-4o
-llm_model_name: /scratch/sgrover6/logs/finetune/completed/qwen2.5_14B_numeric_swimmer_4000/final
-model_type: OFFLINE
-base_model: Qwen/Qwen2.5-14B-Instruct
+llm_model_name: openai/gpt-oss-20b
+model_type: HF
+base_model: openai/gpt-oss-20b
 num_evaluation_episodes: 20
 step_size: 0.5
 reset_llm_conversation: False
 print_episode: 20
 max_limit: 100
-title: Mountain Car Continuous as ProPS Qwen2.5 14B 5th Epoch
+title: Mountain Car Continuous as ProPS HF OSS 20B Baseline
