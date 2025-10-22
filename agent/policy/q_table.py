@@ -1,6 +1,7 @@
 from agent.policy.base_policy import Policy
 import itertools
 import random
+import numpy as np
 
 
 # states = [
@@ -9,6 +10,7 @@ import random
 #   ...
 #   [0, 1, 2]  # dim n
 # ]
+
 
 # actions = [
 #   [0, 1, 2], # dim 1
@@ -19,42 +21,45 @@ import random
 class QTable(Policy):
     def __init__(self, states, actions):
         super().__init__(states, actions)
-        self.q_table_length = self._calculate_q_table_length(states, actions)
+
+        self.q_table_length = self._calculate_q_table_length(states)
         print(f"Q Table length: {self.q_table_length}")
-        if self.q_table_length > 1500:
+        if self.q_table_length > 120:
             raise Exception("Q Table is too large to handle")
-        
+
+        self.actions = actions
+        self.states = states
+        self.states = list(itertools.product(*self.states))
+        if len(self.states[0]) == 1:
+            self.states = [state[0] for state in self.states]
         self.initialize_policy()
-        print(f"Q Table: {str(self)}")
 
-
-    def _calculate_q_table_length(self, states, actions):
+    def _calculate_q_table_length(self, states):
         length = 1
         for state in states:
             length *= len(state)
-        for action in actions:
-            length *= len(action)
         return length
-
 
     def initialize_policy(self):
         """
         Initializes the policy mapping for the agent.
         This method creates a nested dictionary structure where each state-action pair
-        is assigned a random value. The states and actions are generated using the 
+        is assigned a random value. The states and actions are generated using the
         Cartesian product of the provided states and actions lists.
         Attributes:
-            self.mapping (dict): A dictionary where keys are states (tuples) and values 
-                                 are dictionaries. The inner dictionaries have actions 
+            self.mapping (dict): A dictionary where keys are states (tuples) and values
+                                 are dictionaries. The inner dictionaries have actions
                                  (tuples) as keys and random float values as values.
         """
 
         self.mapping = dict()
-        for state in itertools.product(*self.states):
-            self.mapping[state[0]] = dict()
-            for action in itertools.product(*self.actions):
-                self.mapping[state[0]][action[0]] = random.random()
+        if len(self.actions) == 1:
+            actions = self.actions[0]
+        else:
+            actions = list(itertools.product(*self.actions))
 
+        for state in self.states:
+            self.mapping[state] = random.choice(actions)
 
     def get_action(self, state):
         """
@@ -64,15 +69,8 @@ class QTable(Policy):
         Returns:
             tuple: The action with the highest Q-value.
         """
-        best_action = None
-        best_value = float('-inf')
-        for action, value in self.mapping[state].items():
-            if value > best_value:
-                best_value = value
-                best_action = action
+        best_action = self.mapping[state]
         return best_action
-
-
 
     def __str__(self):
         """
@@ -81,18 +79,15 @@ class QTable(Policy):
             str: A string representation of the Q-table.
         """
         # TODO: Change the title of the table to the name of each dim, e.g., "cos(theta) | sin(theta) | velocity | action | q_value"
-        table = ["State | Action | Q-Value"]
-        for state, actions in self.mapping.items():
-            for action, value in actions.items():
-                table.append(f"{state} | {action} | {value}")
+        table = ["State | Action"]
+        for state, action in self.mapping.items():
+            table.append(f"{state} | {action}")
         return "\n".join(table)
 
+    def update_q_value(self, state, action):
+        if state in self.mapping:
+            self.mapping[state] = action
 
-    def update_q_value(self, state, action, new_q_value):
-        if state in self.mapping and action in self.mapping[state]:
-            self.mapping[state][action] = new_q_value
-
-    
     def update_policy(self, new_q_table):
         """
         Updates the policy with a new Q-table.
@@ -105,12 +100,12 @@ class QTable(Policy):
                                           corresponding Q-value.
         Example:
             new_q_table = [
-                (state1, action1, q_value1),
-                (state2, action2, q_value2),
+                action1,
+                action2,
                 ...
             ]
             policy.update_policy(new_q_table)
         """
-        
-        for state, action, q_value in new_q_table:
-            self.update_q_value(state, action, q_value)
+
+        for idx, action in enumerate(new_q_table):
+            self.update_q_value(self.states[idx], action)

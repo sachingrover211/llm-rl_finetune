@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from agent.policy.q import QTable
+from agent.policy.q_table import QTable
 from agent.policy.linear_policy import LinearPolicy
 from agent.policy.replay_buffer import EpisodeRewardBufferNoBias
 from agent.policy.llm_brain import LLMBrainStandardized

@@ -1,4 +1,4 @@
-from agent.policy.q import QTable
+from agent.policy.q_table import QTable
 from agent.policy.replay_buffer import ReplayBuffer
 from agent.policy.llm_brain import LLMBrain
 from world.frozen_lake import FrozenLakeWorld
