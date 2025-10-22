@@ -1,4 +1,4 @@
-task: swimmer
+task: walker
 experiments: 10
 num_episodes: 400
 gym_env_name: Walker2d-v5
@@ -6,13 +6,13 @@ render_mode: None
 logdir: /scratch/msheiban/logs/evaluation/baseline/walker/numeric_hf_oss_20B_baseline_400ep
 actions: 6
 states: 17
-max_traj_count: 1000
-max_traj_length: 1000
-warmup_episodes: 20
+max_traj_count: 20
+max_traj_length: 5
+warmup_episodes: 10
 template_dir: agent/policy/templates
-llm_si_template_name: numeric_optimization_params.j2
-llm_ui_template_name: non_standard/swimmer_episode.j2
-llm_output_conversion_template_name: output_conversion_params.j2
+llm_si_template_name: numeric_optimization.j2
+llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
+llm_output_conversion_template_name: output_conversion.j2
 env_desc_file: None
 #llm_model_name: gpt-oss
 llm_model_name: openai/gpt-oss-20b
@@ -22,5 +22,5 @@ num_evaluation_episodes: 20
 step_size: 0.1
 reset_llm_conversation: False
 print_episode: 20
-max_limit: 1000
+max_limit: 10000
 title: Walker 2d as ProPS s ProPS HF OSS 20B Baseline

@@ -2,7 +2,7 @@
 
 #SBATCH -N 1           # number of nodes
 #SBATCH -c 4
-#SBATCH -t 2-12:00:00   # time in d-hh:mm:ss
+#SBATCH -t 3-12:00:00   # time in d-hh:mm:ss
 #SBATCH -G a100:1
 #SBATCH --mem 80G
 #SBATCH -p general
@@ -19,13 +19,14 @@ source activate llm
 ml cuda-12.4.1-gcc-12.1.0 nccl-2.22.3-1-gcc-12.1.0
 
 export SCRATCH="/scratch/msheiban"
-export CODE_HOME="/home/avashis9/llm-rl_finetune"
-export ACCELERATE_CONFIG="/home/msheiban/accelerate_config_rl.yaml"
+export CODE_HOME="/home/msheiban/home/avashis9/llm-rl_finetune/"
+export ACCELERATE_CONFIG="/home/msheiban/home/msheiban/accelerate_config_rl.yaml"
 export CONFIG_PATH="$CODE_HOME/configs/walker_numeric_oss_baseline.yaml"
 export HF_HOME="$SCRATCH/.cache/huggingface/hub/"
 export OPENAI_API_KEY=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
 cd $CODE_HOME
 export CUDA_VISIBLE_DEVICES="0"
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 pwd
 #echo $SLURM_JOB_ID
 #echo $MASTER_ADDR
