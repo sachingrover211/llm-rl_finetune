@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from runner import mountain_car_runner, pendulum_runner, blackjack_runner, cartpole_runner, frozen_lake_runner, hopper_runner, mountain_car_cont_runner, inv_pendulum_runner, pong_runner, swimmer_runner
+from runner import mountain_car_runner, pendulum_runner, blackjack_runner, cartpole_runner, frozen_lake_runner, hopper_runner, mountain_car_cont_runner, inv_pendulum_runner, pong_runner, swimmer_runner, reacher_runner, double_inv_pendulum_runner
 
 
 def main():
@@ -36,6 +36,10 @@ def main():
         pong_runner.run_training_loop(**config)
     elif config["task"] == "swimmer":
         swimmer_runner.run_training_loop(**config)
+    elif config["task"] == "reacher":
+        reacher_runner.run_training_loop(**config)
+    elif config["task"] == "double_ip":
+        double_inv_pendulum_runner.run_training_loop(**config)
     else:
         msg = f"Task {config['task']} not recognized."
         raise ValueError(msg)

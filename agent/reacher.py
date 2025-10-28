@@ -1,6 +1,7 @@
 from agent.base_agent import ContinuousAgent
 
-class HopperAgent(ContinuousAgent):
+
+class ReacherAgent(ContinuousAgent):
     def __init__(
         self,
         num_episodes,
@@ -16,13 +17,13 @@ class HopperAgent(ContinuousAgent):
         model_type,
         base_model,
         num_evaluation_episodes,
-        warmup_episodes = 1,
+        warmup_episodes=1,
         step_size = 1.0,
         reset_llm_conversations = False,
         env_desc_file = None
     ):
         self.reset_llm_conversations = reset_llm_conversations
-        self.max_val = 1000.0
+        self.max_val = -5.0
         self.step_size = step_size
         self.warmup_episodes = warmup_episodes
 
