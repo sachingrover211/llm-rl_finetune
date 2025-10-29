@@ -21,7 +21,7 @@ ml cuda-12.4.1-gcc-12.1.0 nccl-2.22.3-1-gcc-12.1.0
 export SCRATCH="/scratch/sgrover6"
 export CODE_HOME="/home/sgrover6/avashis9/llm-rl_finetune"
 export ACCELERATE_CONFIG="/home/sgrover6/src/accelerate_config_rl.yaml"
-export CONFIG_PATH="$CODE_HOME/configs/hopper_numeric_oss_baseline.yaml"
+export CONFIG_PATH="$CODE_HOME/configs/frozen_lake_numeric_oss_baseline.yaml"
 export HF_HOME="$SCRATCH/.cache/huggingface/hub/"
 export OPENAI_API_KEY=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
 cd $CODE_HOME

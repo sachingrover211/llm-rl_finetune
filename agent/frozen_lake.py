@@ -5,32 +5,41 @@ from world.frozen_lake import FrozenLakeWorld
 
 class FrozenLakeAgent:
     def __init__(
-        self,
-        logdir,
-        actions,
-        grid_size,
-        max_traj_count,
-        max_traj_length,
-        llm_si_template,
-        llm_output_conversion_template,
-        llm_model_name,
-        num_evaluation_episodes,
-        record_video = False,
-        use_replay_buffer = True,
-        reset_llm_conversations = False,
-        llm_ui_template = "",
+            self,
+            num_episodes,
+            logdir,
+            actions,
+            states,
+            max_traj_count,
+            max_traj_length,
+            llm_si_template,
+            llm_ui_template,
+            llm_output_conversion_template,
+            llm_model_name,
+            model_type,
+            base_model,
+            num_evaluation_episodes,
+            warmup_episodes=1,
+            step_size=1.0,
+            reset_llm_conversations=False,
+            env_desc_file=None,
+            record_video=False,
+            use_replay_buffer=True,
     ):
         self.replay_buffer = None
         if use_replay_buffer:
             self.replay_buffer = ReplayBuffer(
-                max_traj_count = max_traj_count, max_traj_length = max_traj_length
+                max_traj_count=max_traj_count, max_traj_length=max_traj_length
             )
 
         self.llm_brain = LLMBrain(
-            llm_si_template, llm_output_conversion_template, llm_model_name, llm_ui_template
+            llm_si_template, llm_output_conversion_template, llm_model_name,
+            llm_ui_template, model_type, base_model
         )
         self.llm_brain.reset_llm_conversation()
 
+        self.step_size = step_size
+        self.warmup_episodes = warmup_episodes
         self.logdir = logdir
         self.num_evaluation_episodes = num_evaluation_episodes
         self.training_episodes = 0
@@ -39,6 +48,10 @@ class FrozenLakeAgent:
         self.average_reward = 0
         self.use_replay_buffer = use_replay_buffer
         self.reset_llm_conversations = reset_llm_conversations
+
+        # Store states and actions for later use
+        self.states = states
+        self.actions = actions
 
 
     def initialize_policy(self, world, grid_size, actions):

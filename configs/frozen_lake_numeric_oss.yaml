@@ -1,0 +1,26 @@
+task: grid_world
+experiments: 10
+num_episodes: 400
+gym_env_name: FrozenLake-v1
+render_mode: None
+logdir: /scratch/sgrover6/logs/evaluation/baseline/FrozenLake/numeric_hf_oss_20B_baseline_400ep
+actions: [[0, 1, 2, 3]]
+states: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]]
+max_traj_count: 20
+max_traj_length: 100
+warmup_episodes: 20
+template_dir: agent/policy/templates
+llm_si_template_name: frozenlake_si.j2
+llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
+llm_output_conversion_template_name: non_standard/frozenlake_llm_output_conversion.j2.
+env_desc_file: None
+#llm_model_name: gpt-4o
+llm_model_name: openai/gpt-oss-20b
+model_type: HF
+base_model: openai/gpt-oss-20b
+num_evaluation_episodes: 20
+step_size: 1.0
+reset_llm_conversation: False
+print_episode: 20
+max_limit: 100
+title: FrozenLake as ProPS s ProPS HF OSS 20B Baseline

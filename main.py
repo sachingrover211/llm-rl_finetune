@@ -40,7 +40,9 @@ def main():
         reacher_runner.run_training_loop(**config)
     elif config["task"] == "double_ip":
         double_inv_pendulum_runner.run_training_loop(**config)
-    else:
+    elif config["task"] == "grid_world":
+        frozen_lake_runner.run_training_loop(**config)
+    else::
         msg = f"Task {config['task']} not recognized."
         raise ValueError(msg)
 
