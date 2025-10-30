@@ -42,6 +42,9 @@ def run_training_loop(
     llm_output_conversion_template = jinja2_env.get_template(
         llm_output_conversion_template_name
     )
+    llm_ui_template = None
+    if llm_ui_template_name != "None":
+        llm_ui_template = jinja2_env.get_template(llm_ui_template_name)
 
     num_states = len(states[0]) if states and len(states) > 0 else 16
     grid_size = int(np.sqrt(num_states))
