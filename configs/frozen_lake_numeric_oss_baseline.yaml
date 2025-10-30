@@ -14,6 +14,8 @@ llm_si_template_name: frozenlake_si.j2
 llm_ui_template_name: non_standard/mountaincar_cont_episode.j2
 llm_output_conversion_template_name: non_standard/frozenlake_llm_output_conversion.j2.
 env_desc_file: None
+record_video: false
+use_replay_buffer: true
 #llm_model_name: gpt-4o
 llm_model_name: openai/gpt-oss-20b
 model_type: HF

@@ -42,7 +42,7 @@ def main():
         double_inv_pendulum_runner.run_training_loop(**config)
     elif config["task"] == "grid_world":
         frozen_lake_runner.run_training_loop(**config)
-    else::
+    else:
         msg = f"Task {config['task']} not recognized."
         raise ValueError(msg)
 
